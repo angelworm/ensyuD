@@ -23,7 +23,7 @@ public class Lexer {
 		
 		StringBuilder b = new StringBuilder();
 		
-		while(index < str.length && Character.isLetter(str[index])) {
+		while(index < str.length && Character.isLetterOrDigit(str[index])) {
 			b.append(str[index++]);
 		}
 		
@@ -32,7 +32,7 @@ public class Lexer {
 	
 	private Token getReservedOrIdentifer() {
 		String value = identifer();
-		Token t = new Token(TokenType.SIDENTIFER, value, linenum);
+		Token t = new Token(TokenType.SIDENTIFIER, value, linenum);
 		
 		if(value.equals("and")) 	{t.setTokenType(TokenType.SAND);}
 		if(value.equals("array"))	{t.setTokenType(TokenType.SARRAY);}
@@ -51,7 +51,7 @@ public class Lexer {
 		if(value.equals("of")) 		{t.setTokenType(TokenType.SOF);}
 		if(value.equals("or")) 		{t.setTokenType(TokenType.SOR);}
 		if(value.equals("procedure")) {t.setTokenType(TokenType.SPROCEDURE);}
-		if(value.equals("program")) {t.setTokenType(TokenType.SPROCEDURE);}
+		if(value.equals("program")) {t.setTokenType(TokenType.SPROGRAM);}
 		if(value.equals("readln")) 	{t.setTokenType(TokenType.SREADLN);}
 		if(value.equals("then")) 	{t.setTokenType(TokenType.STHEN);}
 		if(value.equals("true")) 	{t.setTokenType(TokenType.STRUE);}
@@ -62,6 +62,20 @@ public class Lexer {
 		return t;
 	}
 	
+	private String number() {
+		if(index >= str.length
+				|| !Character.isDigit(str[index])) 
+			throw new RuntimeException("unexpected token : " + str[index-1] + ": line = "+linenum);
+		
+		StringBuilder b = new StringBuilder();
+		
+		while(index < str.length && Character.isDigit(str[index])) {
+			b.append(str[index++]);
+		}
+		
+		return b.toString();
+	}
+
 	public List<Token> doLex() {
 		int size = str.length;
 		LinkedList<Token> ret = new LinkedList<Token>();
@@ -79,13 +93,15 @@ public class Lexer {
 				Token tmp = getReservedOrIdentifer();
 				if(tmp == null) throw new RuntimeException();
 				ret.add(tmp);
+			} else if(Character.isDigit(c)) {
+				ret.add(new Token(TokenType.SCONSTANT, number(), linenum));
 			} else if(c == '{') {
 				while(index < size && str[index] != '}') {
 					if(str[index++] == '\n') linenum++;
 				}
 				index++;
 			} else {
-				Token t = new Token(TokenType.SIDENTIFER, String.valueOf(c), linenum);
+				Token t = new Token(TokenType.SIDENTIFIER, String.valueOf(c), linenum);
 				index += 1;
 				switch(c) {
 				case '=': t.setTokenType(TokenType.SEQUAL); break;
@@ -97,7 +113,7 @@ public class Lexer {
 				case ')': t.setTokenType(TokenType.SRPAREN); break;
 				case '[': t.setTokenType(TokenType.SLBRACKET); break;
 				case ']': t.setTokenType(TokenType.SRBRACKET); break;
-				case ';': t.setTokenType(TokenType.SSEMICOKON); break;
+				case ';': t.setTokenType(TokenType.SSEMICOLON); break;
 				case ',': t.setTokenType(TokenType.SCOMMA); break;
 				case '<':
 					t.setTokenType(TokenType.SLESS);
@@ -137,18 +153,21 @@ public class Lexer {
 					break;
 				case '\'':
 					StringBuilder b = new StringBuilder();
-					while(++index >= size || str[index] != '\'' || str[index] != '\n') {
+					while(index < size && str[index] != '\'' && str[index] != '\n' ) {
 						b.append(str[index]);
+						index++;
 					}
-					
-					if(str[index] == '\n') 
-						throw new RuntimeException("unexpected return code : line = "+linenum);
+
 					if(index >= size) 
 						throw new RuntimeException("unexpected end of file : line = "+linenum);
+					if(str[index] == '\n') 
+						throw new RuntimeException("unexpected return code : line = "+linenum);
 					
-					t = new Token(TokenType.SSTRING, b.toString(), linenum);
+					index++;
+					t = new Token(TokenType.SSTRING, "'" + b.toString() + "'", linenum);
+					break;
 				default:
-					throw new RuntimeException("unexpected token : " + str[index-1] + ": line = "+linenum);
+					throw new RuntimeException("unexpected token : " + c + " : line = "+linenum);
 				}
 				ret.add(t);
 			}
