@@ -40,7 +40,7 @@ public class LexerTest {
 				File file = new File(args[1]);
 				FileWriter filewriter = new FileWriter(file);
 				
-				for(Token t : (new Lexer(testcase)).doLex()) {
+				for(Token t : Lexer.analyze(testcase)) {
 					filewriter.write(
 							t.getValue()
 							+ "\t" + t.getTokenType().name()
@@ -54,7 +54,7 @@ public class LexerTest {
 				System.out.println(e);
 			}
 		} else {
-			for(Token t : (new Lexer(testcase)).doLex()) {
+			for(Token t : Lexer.analyze(testcase)) {
 				System.out.println(
 						t.getValue()
 						+ "\t" + t.getTokenType().name()

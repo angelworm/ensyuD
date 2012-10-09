@@ -4,11 +4,17 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class Lexer {
+	public static List<Token> analyze(String src) {
+		return (new LexerImpl(src)).doLex();
+	}
+}
+
+class LexerImpl {
 	private char[] str;
 	private int index;
 	private int linenum;
 	
-	public Lexer(String str_) {
+	public LexerImpl(String str_) {
 		str = str_.toCharArray();
 	}
 	
