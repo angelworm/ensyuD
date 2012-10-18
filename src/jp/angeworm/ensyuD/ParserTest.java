@@ -35,69 +35,13 @@ public class ParserTest {
 			return Parser.parse(Lexer.analyze(read(path)));
 		} catch(RuntimeException e) {
 			e.printStackTrace();
+			
 			return false;
 		}
 	}
 	
 	@Test
 	public void test() {
-		String ret = "\n";
-		String testcase = "{test program for subset pascal compiler }" + ret +
-				"{\"saishou jijyouhou no keisann}" + ret +
-				"" + ret +
-				"program pas104(output);" + ret +
-				"" + ret +
-				"var     n:integer;" + ret +
-				"        max: integer;   { const for the number of data }" + ret +
-				"        x:integer;" + ret +
-				"        y:integer;" + ret +
-				"        sx:integer;" + ret + //10
-				"        sy:integer;" + ret +
-				"        sxy:integer;" + ret +
-				"        sx2:integer;" + ret +
-				"        w:integer;" + ret +
-				"        a:integer;" + ret +
-				"        b:integer;" + ret +
-				"        dx:array [1..8] of integer;" + ret +
-				"        dy:array [1..8] of integer;" + ret +
-				"" + ret +
-				"begin" + ret + // 20
-				"        max := 8;" + ret +
-				"        dx[1]:=96;   dy[1]:=86;" + ret +
-				"        dx[2]:=89;   dy[2]:=56;" + ret +
-				"        dx[3]:=78;   dy[3]:=81;" + ret +
-				"        dx[4]:=68;   dy[4]:=86;" + ret +
-				"        dx[5]:=58;   dy[5]:=78;" + ret +
-				"        dx[6]:=49;   dy[6]:=56;" + ret +
-				"        dx[7]:=39;   dy[7]:=23;" + ret +
-				"        dx[8]:=32;   dy[8]:=24;" + ret +
-				"" + ret + // 30
-				"        n:=1;sx:=0;sy:=0;sxy:=0;sx2:=0;" + ret +
-				"        writeln('         No.         x           y          xy          x^2');" + ret +
-				"        while n<=max do begin" + ret +
-				"                writeln( n, dx[n], dy[n], dx[n]*dy[n], dx[n]*dx[n]);" + ret +
-				"                sx:=sx+dx[n];   sy:=sy+dy[n];" + ret +
-				"                sxy:=sxy+dx[n]*dy[n];" + ret +
-				"                sx2:=sx2+dx[n]*dx[n];" + ret +
-				"                n:=n+1" + ret +
-				"        end;" + ret +
-				"        writeln;" + ret + // 40
-				"        writeln( 'Sigma(x)=   ',sx);" + ret +
-				"        writeln( 'Sigma(y)=   ',sy);" + ret +
-				"        writeln( 'Sigma(xy)=  ',sxy);" + ret +
-				"        writeln( 'Sigma(x^2)= ',sx2);" + ret +
-				"        w:=max*sx2-sx*sx;" + ret +
-				"        if w*sx2=0 then begin" + ret +
-				"                writeln( 'Fitting Unsuccessful.')" + ret +
-				"	end" + ret +
-				"	else begin" + ret + 
-				"                b:=(sx2*sy - sxy*sx) div w;" + ret + // 50
-				"                a:=(sxy-b*sx) div sx2;" + ret + 
-				"                writeln;" + ret +
-				"                writeln( 'a=',a,'   b=',b)" + ret +
-				"        end" + ret +
-				"end" + ".";
-
 		//fail("Not yet implemented");
 		assertTrue("001",run("EnshuD-toolkit-2012/testdata/001.pas"));
 		assertTrue("002",run("EnshuD-toolkit-2012/testdata/002.pas"));
@@ -112,6 +56,23 @@ public class ParserTest {
 		assertTrue("011",run("EnshuD-toolkit-2012/testdata/011.pas"));
 		assertTrue("012",run("EnshuD-toolkit-2012/testdata/012.pas"));
 		assertTrue("013",run("EnshuD-toolkit-2012/testdata/013.pas"));
+		
+		assertTrue("new07",run("EnshuD-toolkit-2012/subtests/new07.pas"));
+		assertTrue("new08",run("EnshuD-toolkit-2012/subtests/new08.pas"));
+		assertFalse("new10",run("EnshuD-toolkit-2012/subtests/new10.pas"));
+		assertTrue("new11",run("EnshuD-toolkit-2012/subtests/new11.pas"));
+		
+		assertFalse("test01",run("EnshuD-toolkit-2012/subtests/test01.pas"));
+		assertTrue("test02",run("EnshuD-toolkit-2012/subtests/test02.pas"));
+		assertTrue("test03",run("EnshuD-toolkit-2012/subtests/test03.pas"));
+		assertTrue("test04",run("EnshuD-toolkit-2012/subtests/test04.pas"));
+		assertTrue("test05",run("EnshuD-toolkit-2012/subtests/test05.pas"));
+		assertTrue("test06",run("EnshuD-toolkit-2012/subtests/test06.pas"));
+		assertTrue("test09",run("EnshuD-toolkit-2012/subtests/test09.pas"));
+		assertTrue("test12",run("EnshuD-toolkit-2012/subtests/test12.pas"));
+		assertTrue("test13",run("EnshuD-toolkit-2012/subtests/test13.pas"));
+		assertFalse("test14",run("EnshuD-toolkit-2012/subtests/test14.pas"));
+
 		
 	}
 

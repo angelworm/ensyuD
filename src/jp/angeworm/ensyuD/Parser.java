@@ -224,6 +224,10 @@ class ParserImpl {
 
 		Token t = popToken();
 		switch(t.getTokenType()) {
+		case SBEGIN:
+			pushToken(t);
+			compound();
+			break;
 		case SIF:
 			expression();
 			expectToken(TokenType.STHEN);
@@ -236,7 +240,7 @@ class ParserImpl {
 		case SWHILE:
 			expression();
 			expectToken(TokenType.SDO);
-			compound();
+			sentence();
 			break;
 		case SIDENTIFIER:
 			if(whenToken(TokenType.SLPAREN)) {
@@ -335,19 +339,12 @@ class ParserImpl {
 			break;
 		case SNOT:
 			factor();
+			break;
 		default:
 			fail(t);
 		}
 	}
 
-	private void constant() {
-		TokenType[] ct = new TokenType[]{
-				TokenType.SINTEGER, TokenType.SSTRING,
-				TokenType.SFALSE, TokenType.STRUE
-		};
-		expectToken(ct);
-	}
-	
 	public boolean parse() {
 		program();
 		return this.data.isEmpty();
