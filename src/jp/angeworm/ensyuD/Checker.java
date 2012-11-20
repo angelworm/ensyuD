@@ -28,7 +28,18 @@ class CheckerImpl {
 	private void fail(Token t) {
 		throw new RuntimeException("unexpected " + t.getTokenType().name() 
 				+ " " + t.getValue()
-				+ " near at line " + t.getLineNumber());
+				+ " near at line " + t.getLineNumber() + "\n"+ data);
+	}
+	
+	private void failType(Token t, VariableType actual, VariableType expected) {
+		throw new RuntimeException("type error at" + t.getLineNumber() + "\n"
+				+ "\t actual : " + actual + "\n"
+				+ "\t expected : " + expected);
+	}
+	private void failType(int linum, VariableType actual, VariableType expected) {
+		throw new RuntimeException("type error at" + linum + "\n"
+				+ "\t actual : " + actual + "\n"
+				+ "\t expected : " + expected);
 	}
 	
 	private Token popToken(){
@@ -281,7 +292,6 @@ class CheckerImpl {
 		} while(whenToken(TokenType.SSEMICOLON));
 		expectToken(TokenType.SEND);
 		System.out.print("#####variable:\n"+env);
-
 	}
 	
 	private void sentence() {
@@ -335,91 +345,169 @@ class CheckerImpl {
 		}
 	}
 	
-	private void variable() {
+	private VariableType variable() {
 		int linum = getLineNumber();
 		String name = getIdentifer().getName();
+		VariableType type;
 		
 		Variable v = env.find(name);
 		if(v == null) {
-			throw new RuntimeException("Undefined Identifer " + name + " at " + linum);
+			throw new RuntimeException("Undefined Variable " + name + " at " + linum);
+		} else if(v.getType() == VariableType.PROCEDURE) {
+			throw new RuntimeException("Referencing Procedure as variable. " + name + " at " + linum);
 		}
 		
+		type = v.getType();
+		
+		if(!testToken(TokenType.SLBRACKET)) {
+			return type;
+		}
+		
+		//process array
+		
 		linum = getLineNumber();
-		if(testToken(TokenType.SLBRACKET) && !v.getType().isArray()) {
+		if(!v.getType().isArray()) {
 			throw new RuntimeException( name + "is not array at " + linum);
 		}
 		
 		if(whenToken(TokenType.SLBRACKET)) {
-			expression();
+			VariableType itype = expression();
+			if(itype != VariableType.INTEGER) 
+				throw new RuntimeException("Array index must be integer. " + name + " at " + linum);
 			expectToken(TokenType.SRBRACKET);
 		}
+		return v.getType().arrayOf();
 	}
 	
-	private void expressions() {
-		expression();
+	private List<VariableType> expressions() {
+		List<VariableType> ret = new LinkedList<VariableType>();
+		ret.add(expression());
 		while(whenToken(TokenType.SCOMMA)) {
-			expression();
+			ret.add(expression());
 		}
+		return ret;
 	}
 
-	private void expression() {
+	private VariableType expression() {
 		TokenType[] op = new TokenType[]{
 				TokenType.SEQUAL,TokenType.SNOTEQUAL,
 				TokenType.SLESS,TokenType.SLESSEQUAL,
 				TokenType.SGREAT,TokenType.SGREATEQUAL};
+		VariableType opl;
+		int linum = getLineNumber();
 		
-		simple_expression();
+		opl = simple_expression();
 		if(whenToken(op)){
-			simple_expression();
+			VariableType opr = simple_expression();
+			if(opl != opr)
+				throw new RuntimeException("type mismatch in compare operator at " + linum + "\n"
+						+ "\t actual : " + opl + "\n"
+						+ "\t expected : " + opr);
+
 		}
+		return opl;
 	}
 	
-	private void simple_expression() {
+	private VariableType simple_expression() {
 		TokenType[] op = new TokenType[]{
 				TokenType.SPLUS, TokenType.SMINUS, TokenType.SOR};
+		VariableType ltype, rtype = VariableType.VOID;
 		
-		whenToken(new TokenType[]{TokenType.SPLUS, TokenType.SMINUS});
-		term();
-		while(whenToken(op)) {
-			term();
+		if(whenToken(new TokenType[]{TokenType.SPLUS, TokenType.SMINUS}) ){
+			int linum = getLineNumber();
+			ltype = term();
+			if(ltype != VariableType.INTEGER) 
+				new RuntimeException("type error at" + linum + "\n"
+					+ "\t actual : " + ltype + "\n"
+					+ "\t expected : " + VariableType.INTEGER);
+		} else {
+			ltype = term();
 		}
+		while(testToken(op)) {
+			if(whenToken(new TokenType[]{TokenType.SPLUS, TokenType.SMINUS})) {
+				int linum = getLineNumber();
+				rtype = term();
+				if(ltype != VariableType.INTEGER || rtype != VariableType.INTEGER)
+					new RuntimeException("type mismatch at" + linum + "\n"
+							+ "\t left : " + ltype + "\n"
+							+ "\t right : " + rtype + "\n"
+							+ "\t expected : " + VariableType.INTEGER);
+			} else if(whenToken(TokenType.SOR)) {
+				int linum = getLineNumber();
+				rtype = term();
+				if(ltype != VariableType.BOOLEAN || rtype != VariableType.BOOLEAN)
+					new RuntimeException("type mismatch at" + linum + "\n"
+							+ "\t left : " + ltype + "\n"
+							+ "\t right : " + rtype + "\n"
+							+ "\t expected : " + VariableType.BOOLEAN);
+			}
+			ltype = rtype;
+		}
+		return ltype;
 	}
 	
-	private void term() {
+	private VariableType term() {
 		TokenType[] op = new TokenType[]{
 				TokenType.SSTAR, TokenType.SDIVD, TokenType.SMOD, TokenType.SAND};
+		VariableType ltype, rtype = VariableType.VOID;
 		
-		factor();
-		while(whenToken(op)) {
-			factor();
+		ltype = factor();
+		
+		while(testToken(op)) {
+			if(whenToken(new TokenType[]{TokenType.SSTAR, TokenType.SDIVD, TokenType.SMOD})) {
+				int linum = getLineNumber();
+				rtype = factor();
+				if(ltype != VariableType.INTEGER || rtype != VariableType.INTEGER)
+					new RuntimeException("type mismatch at" + linum + "\n"
+							+ "\t left : " + ltype + "\n"
+							+ "\t right : " + rtype + "\n"
+							+ "\t expected : " + VariableType.INTEGER);
+			} else if(whenToken(TokenType.SAND)) {
+				int linum = getLineNumber();
+				rtype = factor();
+				if(ltype != VariableType.BOOLEAN || rtype != VariableType.BOOLEAN)
+					new RuntimeException("type mismatch at" + linum + "\n"
+							+ "\t left : " + ltype + "\n"
+							+ "\t right : " + rtype + "\n"
+							+ "\t expected : " + VariableType.BOOLEAN);
+			} else {
+				int linum = getLineNumber();
+				throw new RuntimeException("unknown error at" + linum);
+			}
 		}
+		return ltype;
 	}
 	
-	private void factor() {
-//		System.out.println("factor " + data.get(0).getTokenType().name() + ":" + data.get(0).getValue());
-
+	private VariableType factor() {
+		VariableType type;
 		Token t = popToken();
 		switch(t.getTokenType()) {
 		case SCONSTANT:
+			return VariableType.INTEGER;
 		case SSTRING:
+			if(t.getValue().length() == 1) {
+				return VariableType.STRING_LENGTH1;
+			} else {
+				return VariableType.CHAR_ARRAY;
+			}
 		case SFALSE:
 		case STRUE:
-//			constant();
-			break;
+			return VariableType.BOOLEAN;
 		case SIDENTIFIER:
 			pushToken(t);
-			variable();
-			break;
+			return variable();
 		case SLPAREN:
-			expression();
+			type = expression();
 			expectToken(TokenType.SRPAREN);
-			break;
+			return type;
 		case SNOT:
-			factor();
-			break;
+			type = factor();
+			if(type != VariableType.BOOLEAN) failType(t, type, VariableType.BOOLEAN);
+			return type;
 		default:
 			fail(t);
 		}
+		return null;
 	}
 
 	public boolean parse() {

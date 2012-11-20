@@ -27,7 +27,7 @@ public class Environment {
 	
 	public Variable find(String name) {
 		for(Variable v : vals) {
-			if(v.getName() == name) return v;
+			if(v.getName().equals(name)) return v;
 		}
 		
 		if(nextEnv == null) return null;

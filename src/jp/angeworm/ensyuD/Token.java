@@ -66,4 +66,11 @@ public class Token {
 			return false;
 		return true;
 	}
+	@Override
+	public String toString() {
+		return 	value
+				+ "\t" + type.name()
+				+ "\t" + type.ordinal()
+				+ "\t" + lineNumber;
+	}
 }
