@@ -18,6 +18,17 @@ public enum VariableType {
 	public boolean isPrimitive(){return false;}
 	public boolean isArray(){ return false;}
 	public boolean isString(){ return false;}
-	public boolean canConvertChar(){ return false;}
+	public boolean canConvert(VariableType b){ 
+		if(this.equals(b)) return true;
+		if(this.equals(VariableType.STRING_LENGTH1)) {
+			if(b.equals(VariableType.CHAR)) return true;
+			if(b.equals(VariableType.CHAR_ARRAY)) return true;
+		}
+		if(b.equals(VariableType.STRING_LENGTH1)) {
+			if(this.equals(VariableType.CHAR)) return true;
+			if(this.equals(VariableType.CHAR_ARRAY)) return true;
+		}
+		return false;
+	}
 	public VariableType arrayOf(){ return VOID;}
 }

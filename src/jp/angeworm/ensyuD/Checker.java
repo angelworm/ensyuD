@@ -169,7 +169,10 @@ class CheckerImpl {
 			
 			VariableType type = type();
 			
+			int linum = getLineNumber();
 			for(Variable i : vars) {
+				if(env.hasDefinedInCurrentEnv(i.getName()))
+					throw new RuntimeException(i.getName() + "has already defined at " + linum);
 				i.setType(type);
 				env.addVariable(i);
 			}
@@ -190,12 +193,17 @@ class CheckerImpl {
 		if(testStandardTypes()) {
 			return getValType();
 		} else if (whenToken(TokenType.SARRAY)) {
+			int linum = getLineNumber();
 			expectToken(TokenType.SLBRACKET);
-			number();
+			int lvalue = number();
 			expectToken(TokenType.SRANGE);
-			expectToken(TokenType.SCONSTANT);
+			int rvalue = number();
 			expectToken(TokenType.SRBRACKET);
 			expectToken(TokenType.SOF);
+			
+			if(lvalue > rvalue) 
+				throw new RuntimeException("invailed array range at " + linum);
+			
 			if(testStandardTypes()) {
 				Token t = popToken();
 				switch(t.getTokenType()) {
@@ -214,9 +222,15 @@ class CheckerImpl {
 		return null;
 	}
 	
-	private void number(){
-		whenToken(new TokenType[]{TokenType.SPLUS, TokenType.SMINUS});
-		expectToken(TokenType.SCONSTANT);
+	private int number(){
+		int ret = 1;
+		if(whenToken(TokenType.SMINUS)) {
+			ret = -1;
+		} else {
+			whenToken(TokenType.SPLUS);
+		}
+		Variable v = getIdentifer();
+		return ret * Integer.parseInt(v.getName());
 	}
 	
 	private void procedure_definitions() {
@@ -296,7 +310,7 @@ class CheckerImpl {
 	
 	private void sentence() {
 //		System.out.println("sentence " + data.get(0).getTokenType().name() + ":" + data.get(0).getValue());
-
+		VariableType type;
 		Token t = popToken();
 		switch(t.getTokenType()) {
 		case SBEGIN:
@@ -304,7 +318,9 @@ class CheckerImpl {
 			compound();
 			break;
 		case SIF:
-			expression();
+			type = expression();
+			if(type != VariableType.BOOLEAN)
+				throw new RuntimeException("invalid predicate type " + type + " at " + t.getLineNumber());
 			expectToken(TokenType.STHEN);
 			compound();
 			if(testToken(TokenType.SELSE)) {
@@ -313,21 +329,47 @@ class CheckerImpl {
 			}
 			break;
 		case SWHILE:
-			expression();
+			type = expression();
+			if(type != VariableType.BOOLEAN)
+				throw new RuntimeException("invalid predicate type " + type + " at " + t.getLineNumber());
 			expectToken(TokenType.SDO);
 			sentence();
 			break;
 		case SIDENTIFIER:
 			if(whenToken(TokenType.SLPAREN)) {
-				expressions();
+				List<VariableType> args= expressions();
 				expectToken(TokenType.SRPAREN);
+				Variable p = env.find(t.getValue());
+				if(p == null) {
+					throw new RuntimeException("undefined procedure " + t.getValue() +" at " + t.getLineNumber());
+				} else if(p.getType() != VariableType.PROCEDURE) {
+					throw new RuntimeException(p.getName() + " is not procedure at " + t.getLineNumber() + "\n");
+				} else if(!args.equals(p.getArg())){
+					for(int i = 0, size = args.size(); i < size; i++) {
+						if(!args.get(i).canConvert(p.getArg().get(i)))
+							throw new RuntimeException("type mismatch at " + t.getLineNumber() + "\n" +
+									"actual:  " + p.getName() + "(" + args + ")" + "\n" +
+									"expected:" + p.getName() + "(" + p.getArg() + ")" + "\n");
+					}
+				}
 			} else if (testToken(new TokenType[]{TokenType.SASSIGN, TokenType.SLBRACKET})){
 				pushToken(t);
-				variable();
+				VariableType ltype = variable();
 				expectToken(TokenType.SASSIGN);
-				expression();
+				VariableType rtype = expression();
+				if(!ltype.canConvert(rtype)) {
+					throw new RuntimeException("type mismatch at assginment at " + t.getLineNumber() + "\n" +
+							"left: " + ltype + "\n" +
+							"right:" + rtype + "\n");
+				}
 			} else {
 				//non argument function call;
+				Variable p = env.find(t.getValue());
+				if(p == null) {
+					throw new RuntimeException("undefined procedure " + t.getValue() +" at " + t.getLineNumber());
+				} else if(p.getType() != VariableType.PROCEDURE) {
+					throw new RuntimeException(p.getName() + " is not procedure at " + t.getLineNumber() + "\n");
+				}
 			}
 			break;
 		case SREADLN:
@@ -349,7 +391,7 @@ class CheckerImpl {
 		int linum = getLineNumber();
 		String name = getIdentifer().getName();
 		VariableType type;
-		
+				
 		Variable v = env.find(name);
 		if(v == null) {
 			throw new RuntimeException("Undefined Variable " + name + " at " + linum);
@@ -399,11 +441,13 @@ class CheckerImpl {
 		opl = simple_expression();
 		if(whenToken(op)){
 			VariableType opr = simple_expression();
-			if(opl != opr)
+			if(!opl.canConvert(opr)) {
 				throw new RuntimeException("type mismatch in compare operator at " + linum + "\n"
 						+ "\t actual : " + opl + "\n"
 						+ "\t expected : " + opr);
-
+			} else {
+				opl = VariableType.BOOLEAN;
+			}
 		}
 		return opl;
 	}
@@ -417,29 +461,30 @@ class CheckerImpl {
 			int linum = getLineNumber();
 			ltype = term();
 			if(ltype != VariableType.INTEGER) 
-				new RuntimeException("type error at" + linum + "\n"
+				throw new RuntimeException("type error at" + linum + "\n"
 					+ "\t actual : " + ltype + "\n"
 					+ "\t expected : " + VariableType.INTEGER);
 		} else {
 			ltype = term();
 		}
 		while(testToken(op)) {
+			int linum = getLineNumber();
 			if(whenToken(new TokenType[]{TokenType.SPLUS, TokenType.SMINUS})) {
-				int linum = getLineNumber();
 				rtype = term();
 				if(ltype != VariableType.INTEGER || rtype != VariableType.INTEGER)
-					new RuntimeException("type mismatch at" + linum + "\n"
+					throw new RuntimeException("type mismatch at " + linum + "\n"
 							+ "\t left : " + ltype + "\n"
 							+ "\t right : " + rtype + "\n"
 							+ "\t expected : " + VariableType.INTEGER);
 			} else if(whenToken(TokenType.SOR)) {
-				int linum = getLineNumber();
 				rtype = term();
 				if(ltype != VariableType.BOOLEAN || rtype != VariableType.BOOLEAN)
-					new RuntimeException("type mismatch at" + linum + "\n"
+					throw new RuntimeException("type mismatch at " + linum + "\n"
 							+ "\t left : " + ltype + "\n"
 							+ "\t right : " + rtype + "\n"
 							+ "\t expected : " + VariableType.BOOLEAN);
+			} else {
+				new RuntimeException("unknown error at" + linum);
 			}
 			ltype = rtype;
 		}
@@ -458,7 +503,7 @@ class CheckerImpl {
 				int linum = getLineNumber();
 				rtype = factor();
 				if(ltype != VariableType.INTEGER || rtype != VariableType.INTEGER)
-					new RuntimeException("type mismatch at" + linum + "\n"
+					throw new RuntimeException("type mismatch at " + linum + "\n"
 							+ "\t left : " + ltype + "\n"
 							+ "\t right : " + rtype + "\n"
 							+ "\t expected : " + VariableType.INTEGER);
@@ -466,7 +511,7 @@ class CheckerImpl {
 				int linum = getLineNumber();
 				rtype = factor();
 				if(ltype != VariableType.BOOLEAN || rtype != VariableType.BOOLEAN)
-					new RuntimeException("type mismatch at" + linum + "\n"
+					throw new RuntimeException("type mismatch at" + linum + "\n"
 							+ "\t left : " + ltype + "\n"
 							+ "\t right : " + rtype + "\n"
 							+ "\t expected : " + VariableType.BOOLEAN);
@@ -485,7 +530,7 @@ class CheckerImpl {
 		case SCONSTANT:
 			return VariableType.INTEGER;
 		case SSTRING:
-			if(t.getValue().length() == 1) {
+			if(t.getValue().length() == 3) {
 				return VariableType.STRING_LENGTH1;
 			} else {
 				return VariableType.CHAR_ARRAY;

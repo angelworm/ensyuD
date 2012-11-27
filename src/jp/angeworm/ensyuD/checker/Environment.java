@@ -16,6 +16,13 @@ public class Environment {
 		vals.add(v);
 	}
 
+	public boolean hasDefinedInCurrentEnv(String name) {
+		for(Variable v : vals) {
+			if(v.getName().equals(name)) return true;
+		}
+		return false;
+	}
+	
 	public Environment pushEnvironment(){
 		Environment ret = new Environment();
 		ret.nextEnv = this;

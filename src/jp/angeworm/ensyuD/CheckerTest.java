@@ -50,7 +50,7 @@ public class CheckerTest {
 	@Test
 	public void test() {
 		//fail("Not yet implemented");
-/*		assertTrue("001",run("EnshuD-toolkit-2012/testdata/001.pas"));
+		assertTrue("001",run("EnshuD-toolkit-2012/testdata/001.pas"));
 		assertTrue("002",run("EnshuD-toolkit-2012/testdata/002.pas"));
 		assertTrue("003",run("EnshuD-toolkit-2012/testdata/003.pas"));
 		assertTrue("004",run("EnshuD-toolkit-2012/testdata/004.pas"));
@@ -64,22 +64,22 @@ public class CheckerTest {
 		assertTrue("012",run("EnshuD-toolkit-2012/testdata/012.pas"));
 		assertTrue("013",run("EnshuD-toolkit-2012/testdata/013.pas"));
 		
-		assertTrue("new07",run("EnshuD-toolkit-2012/subtests/new07.pas"));*/
-		assertTrue("new08",run("EnshuD-toolkit-2012/subtests/new08.pas"));
-/*		assertFalse("new10",run("EnshuD-toolkit-2012/subtests/new10.pas"));
-		assertTrue("new11",run("EnshuD-toolkit-2012/subtests/new11.pas"));
+		assertFalse("new07",run("EnshuD-toolkit-2012/subtests/new07.pas"));
+		assertFalse("new08",run("EnshuD-toolkit-2012/subtests/new08.pas"));
+		assertFalse("new10",run("EnshuD-toolkit-2012/subtests/new10.pas"));
+		assertFalse("new11",run("EnshuD-toolkit-2012/subtests/new11.pas"));
 		
 		assertFalse("test01",run("EnshuD-toolkit-2012/subtests/test01.pas"));
-		assertTrue("test02",run("EnshuD-toolkit-2012/subtests/test02.pas"));
-		assertTrue("test03",run("EnshuD-toolkit-2012/subtests/test03.pas"));
-		assertTrue("test04",run("EnshuD-toolkit-2012/subtests/test04.pas"));
-		assertTrue("test05",run("EnshuD-toolkit-2012/subtests/test05.pas"));
-		assertTrue("test06",run("EnshuD-toolkit-2012/subtests/test06.pas"));
-		assertTrue("test09",run("EnshuD-toolkit-2012/subtests/test09.pas"));
-		assertTrue("test12",run("EnshuD-toolkit-2012/subtests/test12.pas"));
-		assertTrue("test13",run("EnshuD-toolkit-2012/subtests/test13.pas"));
+		assertFalse("test02",run("EnshuD-toolkit-2012/subtests/test02.pas"));
+		assertFalse("test03",run("EnshuD-toolkit-2012/subtests/test03.pas"));
+		assertFalse("test04",run("EnshuD-toolkit-2012/subtests/test04.pas"));
+		assertFalse("test05",run("EnshuD-toolkit-2012/subtests/test05.pas"));
+		assertFalse("test06",run("EnshuD-toolkit-2012/subtests/test06.pas"));
+		assertFalse("test09",run("EnshuD-toolkit-2012/subtests/test09.pas"));
+		assertFalse("test12",run("EnshuD-toolkit-2012/subtests/test12.pas"));
+		assertFalse("test13",run("EnshuD-toolkit-2012/subtests/test13.pas"));
 		assertFalse("test14",run("EnshuD-toolkit-2012/subtests/test14.pas"));
-*/
+
 		
 	}
 	/**
