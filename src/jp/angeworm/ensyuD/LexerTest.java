@@ -114,10 +114,6 @@ public class LexerTest {
 	private boolean run(String path) {
 		String infix = path.substring(0, path.lastIndexOf('.'));
 		try {
-			System.out.println("#######################");
-			System.out.println(Lexer.read(infix + ".ts"));
-			System.out.println("-----------------------");
-			System.out.println(Lexer.analyze(read(path)));
 			return Lexer.read(infix + ".ts").containsAll(Lexer.analyze(read(path)));
 		} catch(Exception e) {
 			e.printStackTrace();
