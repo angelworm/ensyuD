@@ -1,5 +1,10 @@
 package jp.angeworm.ensyuD;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -7,6 +12,69 @@ public class Lexer {
 	public static List<Token> analyze(String src) {
 		return (new LexerImpl(src)).doLex();
 	}
+	
+	public static List<Token> read(String path) throws IOException{ 
+		File file = new File(path);
+		BufferedReader br = new BufferedReader(new FileReader(file));
+		List<Token> ret = new LinkedList<Token>();
+		String str = "";
+		
+		while((str = br.readLine()) != null){
+			ret.add(readToken(str));
+		}
+		br.close();
+		return ret;
+	}
+	
+	private static Token readToken(String str_) {
+		Token v = new Token(TokenType.SIDENTIFIER);
+		StringBuilder sb = new StringBuilder();
+		int index = 0, len = str_.length();
+		char str[] = str_.toCharArray();
+		char c = '\0';
+		
+		if(str[index] == '\'') {
+			sb.append(str[index++]);
+			do {
+				c = str[index++];
+				sb.append(c);
+			}while(c != '\'');
+		} else {
+			while(!Character.isWhitespace(c = str[index++]))sb.append(c);
+		}
+		v.setValue(sb.toString());
+		
+		sb = new StringBuilder();
+		while(Character.isWhitespace(str[index])) index++;
+		while(!Character.isWhitespace(c = str[index++]))sb.append(c);
+		v.setTokenType(TokenType.valueOf(sb.toString()));
+		
+		sb = new StringBuilder();
+		while(Character.isWhitespace(str[index])) index++;
+		while(!Character.isWhitespace(c = str[index++]))sb.append(c);
+
+		sb = new StringBuilder();
+		while(Character.isWhitespace(str[index])) index++;
+		while(index < len && !Character.isWhitespace(c = str[index])){sb.append(c); index++;}
+		v.setLineNumber(Integer.valueOf(sb.toString()));
+		
+		return v;
+	}
+	public static void write(String path, List<Token> tokens) throws IOException{ 
+		File file = new File(path);
+		FileWriter fw = new FileWriter(file);
+		
+		for(Token t : tokens) {
+			fw.write(
+					t.getValue()
+					+ "\t" + t.getTokenType().name()
+					+ "\t" + t.getTokenType().ordinal()
+					+ "\t" + t.getLineNumber() + "\n"
+					);
+		}
+		fw.close();
+	}
+
 }
 
 class LexerImpl {
