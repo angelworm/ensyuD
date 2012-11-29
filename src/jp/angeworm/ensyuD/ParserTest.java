@@ -8,6 +8,27 @@ import org.junit.Test;
 
 public class ParserTest {
 
+	public static void main(String args[]) {
+		if(args.length != 1) {
+			System.out.println("useage:");
+			System.out.println("\tParser.jar input.ts");
+			return;
+		}
+		try {
+			if(Parser.parse(Lexer.read(args[0]))){
+				System.out.println("OK");
+			} else {
+				System.out.println("NG");
+			}
+		} catch (IOException e) {
+			System.err.println("no input file "+args[0]+".");
+			e.printStackTrace();
+		} catch (RuntimeException e) {
+			System.out.println("NG");
+			e.printStackTrace();
+		}
+	}
+	
 	private String read(String path) {
 		try {
 			File file = new File(path);
