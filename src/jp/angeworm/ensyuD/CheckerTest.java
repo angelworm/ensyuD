@@ -86,8 +86,24 @@ public class CheckerTest {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-		(new CheckerTest()).test();
+		if(args.length != 1) {
+			System.out.println("useage:");
+			System.out.println("\tChecker.jar input.ts");
+			return;
+		}
+		try {
+			if(Checker.parse(Lexer.read(args[0]))){
+				System.out.println("OK");
+			} else {
+				System.out.println("NG");
+			}
+		} catch (IOException e) {
+			System.err.println("no input file "+args[0]+".");
+			e.printStackTrace();
+		} catch (RuntimeException e) {
+			System.out.println("NG");
+			e.printStackTrace();
+		}
 	}
 
 }
