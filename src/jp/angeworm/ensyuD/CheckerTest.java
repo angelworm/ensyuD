@@ -104,7 +104,9 @@ public class CheckerTest {
 			}			
 		} catch (RuntimeException e) {
 			System.out.println("NG");
-			e.printStackTrace();
+			for(int i = 0; i < 100; i++) {
+				System.out.println(e.toString());
+			}			
 		}
 	}
 
