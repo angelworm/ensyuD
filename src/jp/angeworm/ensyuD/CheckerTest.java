@@ -99,10 +99,10 @@ public class CheckerTest {
 			}
 		} catch (IOException e) {
 			System.err.println("no input file "+args[0]+".");
-			System.out.println(e.toString());
+			System.out.println(e.getLocalizedMessage());
 		} catch (RuntimeException e) {
 			System.out.println("NG");
-			System.out.println(e.toString());
+			System.out.println(e.getMessage());
 		}
 	}
 
