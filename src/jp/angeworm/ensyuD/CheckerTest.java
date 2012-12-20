@@ -99,7 +99,9 @@ public class CheckerTest {
 			}
 		} catch (IOException e) {
 			System.err.println("no input file "+args[0]+".");
-			e.printStackTrace();
+			for(int i = 0; i < 100; i++) {
+				System.out.println(e.toString());
+			}			
 		} catch (RuntimeException e) {
 			System.out.println("NG");
 			e.printStackTrace();
