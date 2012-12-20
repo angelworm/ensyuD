@@ -305,7 +305,6 @@ class CheckerImpl {
 			//System.out.println(data.get(0).getTokenType().name() + ":" + data.get(0).getValue());
 		} while(whenToken(TokenType.SSEMICOLON));
 		expectToken(TokenType.SEND);
-		System.out.print("#####variable:\n"+env);
 	}
 	
 	private void sentence() {
