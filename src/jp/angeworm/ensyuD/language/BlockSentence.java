@@ -1,4 +1,4 @@
-package jp.angeworm.ensyuD.compiler.language;
+package jp.angeworm.ensyuD.language;
 
 import java.util.ArrayList;
 import java.util.LinkedList;

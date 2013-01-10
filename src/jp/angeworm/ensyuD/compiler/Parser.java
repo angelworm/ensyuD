@@ -6,16 +6,7 @@ import java.util.List;
 
 import jp.angeworm.ensyuD.Token;
 import jp.angeworm.ensyuD.TokenType;
-import jp.angeworm.ensyuD.compiler.language.ArrayType;
-import jp.angeworm.ensyuD.compiler.language.BlockSentence;
-import jp.angeworm.ensyuD.compiler.language.Expression;
-import jp.angeworm.ensyuD.compiler.language.IfSentence;
-import jp.angeworm.ensyuD.compiler.language.PascalLike;
-import jp.angeworm.ensyuD.compiler.language.Procedure;
-import jp.angeworm.ensyuD.compiler.language.Sentence;
-import jp.angeworm.ensyuD.compiler.language.Type;
-import jp.angeworm.ensyuD.compiler.language.Variable;
-import jp.angeworm.ensyuD.compiler.language.WhileSentence;
+import jp.angeworm.ensyuD.language.*;
 
 public class Parser {
 	public static ParseTree parse(List<Token> tokens) {

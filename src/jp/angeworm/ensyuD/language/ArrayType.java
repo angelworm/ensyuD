@@ -1,4 +1,4 @@
-package jp.angeworm.ensyuD.compiler.language;
+package jp.angeworm.ensyuD.language;
 
 public class ArrayType extends Type {
 	public int min;
