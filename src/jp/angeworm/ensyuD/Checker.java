@@ -26,17 +26,17 @@ class CheckerImpl {
 	}
 	
 	private void fail(Token t) {
-		throw new RuntimeException( t.getLineNumber() + " : syntax error: unexpected token " + t.getTokenType().name() 
+		throw new RuntimeException("Line\t\t\t\t" +  t.getLineNumber() + " : syntax error: unexpected token " + t.getTokenType().name() 
 				+ " " + t.getValue());
 	}
 	
 	private void failType(Token t, VariableType actual, VariableType expected) {
-		throw new RuntimeException(t.getLineNumber() + " : type error " + "\n"
+		throw new RuntimeException("Line\t\t\t\t" + t.getLineNumber() + " : type error " + "\n"
 				+ "\t actual : " + actual + "\n"
 				+ "\t expected : " + expected);
 	}
 	private void failType(int linum, VariableType actual, VariableType expected) {
-		throw new RuntimeException(linum + " : type error" + "\n"
+		throw new RuntimeException("Line\t\t\t\t" + linum + " : type error" + "\n"
 				+ "\t actual : " + actual + "\n"
 				+ "\t expected : " + expected);
 	}
@@ -68,19 +68,19 @@ class CheckerImpl {
 		return ret;
 	}
 	private void nextToken() {
-		if(data.isEmpty()) throw new RuntimeException("unexpected EOF.");
+		if(data.isEmpty()) throw new RuntimeException("Line\t\t\t\t" + "unexpected EOF.");
 		data.pop();
 	}
 	
 	private void expectToken(TokenType t){
-		if(data.isEmpty()) throw new RuntimeException("unexpected EOF.");
+		if(data.isEmpty()) throw new RuntimeException("Line\t\t\t\t" + "unexpected EOF.");
 		Token e = data.pop();
 		
 		if(e.getTokenType() != t)
 			fail(e);
 	}
 	private void expectToken(TokenType[] ts){
-		if(data.isEmpty()) throw new RuntimeException("unexpected EOF.");
+		if(data.isEmpty()) throw new RuntimeException("Line\t\t\t\t" + "unexpected EOF.");
 		
 		if(testToken(ts)) {
 			popToken();
@@ -128,7 +128,7 @@ class CheckerImpl {
 		case SINTEGER: return VariableType.INTEGER;
 		case SBOOLEAN: return VariableType.BOOLEAN;
 		case SCHAR:    return VariableType.CHAR;
-		default: throw new RuntimeException("unexpected type "+ t.getValue()+ " near at line " + t.getLineNumber() + ".");
+		default: throw new RuntimeException("Line\t\t\t\t" + t.getLineNumber() +" : unexpected type "+ t.getValue()+ ".");
 		}
 	}
 	
@@ -171,7 +171,7 @@ class CheckerImpl {
 			int linum = getLineNumber();
 			for(Variable i : vars) {
 				if(env.hasDefinedInCurrentEnv(i.getName()))
-					throw new RuntimeException(i.getName() + " has already defined at " + linum);
+					throw new RuntimeException("Line\t\t\t\t" + i.getName() + " has already defined at " + linum);
 				i.setType(type);
 				env.addVariable(i);
 			}
@@ -201,7 +201,7 @@ class CheckerImpl {
 			expectToken(TokenType.SOF);
 			
 			if(lvalue > rvalue) 
-				throw new RuntimeException(linum + " : invailed array range");
+				throw new RuntimeException("Line\t\t\t\t" + linum + " : invailed array range");
 			
 			if(testStandardTypes()) {
 				Token t = popToken();
@@ -209,7 +209,7 @@ class CheckerImpl {
 				case SINTEGER: return VariableType.INTEGER_ARRAY;
 				case SBOOLEAN: return VariableType.BOOLEAN_ARRAY;
 				case SCHAR:    return VariableType.CHAR_ARRAY;
-				default: throw new RuntimeException(t.getLineNumber() + " : unexpected type "+ t.getValue() + ".");
+				default: throw new RuntimeException("Line\t\t\t\t" + t.getLineNumber() + " : unexpected type "+ t.getValue() + ".");
 				}
 			} else {
 				fail(data.get(0));
@@ -318,7 +318,7 @@ class CheckerImpl {
 		case SIF:
 			type = expression();
 			if(type != VariableType.BOOLEAN)
-				throw new RuntimeException(t.getLineNumber() + " : invalid predicate type " + type);
+				throw new RuntimeException("Line\t\t\t\t" + t.getLineNumber() + " : invalid predicate type " + type);
 			expectToken(TokenType.STHEN);
 			compound();
 			if(testToken(TokenType.SELSE)) {
@@ -329,7 +329,7 @@ class CheckerImpl {
 		case SWHILE:
 			type = expression();
 			if(type != VariableType.BOOLEAN)
-				throw new RuntimeException(t.getLineNumber() + "invalid predicate type " + type);
+				throw new RuntimeException("Line\t\t\t\t" + t.getLineNumber() + "invalid predicate type " + type);
 			expectToken(TokenType.SDO);
 			sentence();
 			break;
@@ -339,13 +339,13 @@ class CheckerImpl {
 				expectToken(TokenType.SRPAREN);
 				Variable p = env.find(t.getValue());
 				if(p == null) {
-					throw new RuntimeException(t.getLineNumber() + " : undefined procedure " + t.getValue());
+					throw new RuntimeException("Line\t\t\t\t" + t.getLineNumber() + " : undefined procedure " + t.getValue());
 				} else if(p.getType() != VariableType.PROCEDURE) {
-					throw new RuntimeException(t.getLineNumber() + " : " + p.getName() + " is not procedure.");
+					throw new RuntimeException("Line\t\t\t\t" + t.getLineNumber() + " : " + p.getName() + " is not procedure.");
 				} else if(!args.equals(p.getArg())){
 					for(int i = 0, size = args.size(); i < size; i++) {
 						if(!args.get(i).canConvert(p.getArg().get(i)))
-							throw new RuntimeException(t.getLineNumber() + " : type mismatch" + "\n" +
+							throw new RuntimeException("Line\t\t\t\t" + t.getLineNumber() + " : type mismatch" + "\n" +
 									"actual:  " + p.getName() + "(" + args + ")" + "\n" +
 									"expected:" + p.getName() + "(" + p.getArg() + ")");
 					}
@@ -356,7 +356,7 @@ class CheckerImpl {
 				expectToken(TokenType.SASSIGN);
 				VariableType rtype = expression();
 				if(!ltype.canConvert(rtype)) {
-					throw new RuntimeException("type mismatch at assginment at " + t.getLineNumber() + "\n" +
+					throw new RuntimeException("Line\t\t\t\t" + "type mismatch at assginment at " + t.getLineNumber() + "\n" +
 							"left: " + ltype + "\n" +
 							"right:" + rtype);
 				}
@@ -364,9 +364,9 @@ class CheckerImpl {
 				//non argument function call;
 				Variable p = env.find(t.getValue());
 				if(p == null) {
-					throw new RuntimeException(t.getLineNumber() + " : undefined procedure " + t.getValue());
+					throw new RuntimeException("Line\t\t\t\t" + t.getLineNumber() + " : undefined procedure " + t.getValue());
 				} else if(p.getType() != VariableType.PROCEDURE) {
-					throw new RuntimeException(t.getLineNumber() + " : " + p.getName() + " is not procedure.");
+					throw new RuntimeException("Line\t\t\t\t" + t.getLineNumber() + " : " + p.getName() + " is not procedure.");
 				}
 			}
 			break;
@@ -392,9 +392,9 @@ class CheckerImpl {
 				
 		Variable v = env.find(name);
 		if(v == null) {
-			throw new RuntimeException(linum + " : Undefined Variable " + name);
+			throw new RuntimeException("Line\t\t\t\t" + linum + " : Undefined Variable " + name);
 		} else if(v.getType() == VariableType.PROCEDURE) {
-			throw new RuntimeException(linum + " : Referencing Procedure as variable : " + name);
+			throw new RuntimeException("Line\t\t\t\t" + linum + " : Referencing Procedure as variable : " + name);
 		}
 		
 		type = v.getType();
@@ -407,13 +407,13 @@ class CheckerImpl {
 		
 		linum = getLineNumber();
 		if(!v.getType().isArray()) {
-			throw new RuntimeException(linum + " : " + name + " is not array");
+			throw new RuntimeException("Line\t\t\t\t" + linum + " : " + name + " is not array");
 		}
 		
 		if(whenToken(TokenType.SLBRACKET)) {
 			VariableType itype = expression();
 			if(itype != VariableType.INTEGER) 
-				throw new RuntimeException(linum + " : Array index must be integer : " + name);
+				throw new RuntimeException("Line\t\t\t\t" + linum + " : Array index must be integer : " + name);
 			expectToken(TokenType.SRBRACKET);
 		}
 		return v.getType().arrayOf();
@@ -440,7 +440,7 @@ class CheckerImpl {
 		if(whenToken(op)){
 			VariableType opr = simple_expression();
 			if(!opl.canConvert(opr)) {
-				throw new RuntimeException(linum + " : type mismatch in compare operator" + "\n"
+				throw new RuntimeException("Line\t\t\t\t" + linum + " : type mismatch in compare operator" + "\n"
 						+ "\t actual : " + opl + "\n"
 						+ "\t expected : " + opr);
 			} else {
@@ -459,7 +459,7 @@ class CheckerImpl {
 			int linum = getLineNumber();
 			ltype = term();
 			if(ltype != VariableType.INTEGER) 
-				throw new RuntimeException(linum + " : type error at" + "\n"
+				throw new RuntimeException("Line\t\t\t\t" + linum + " : type error at" + "\n"
 					+ "\t actual : " + ltype + "\n"
 					+ "\t expected : " + VariableType.INTEGER);
 		} else {
@@ -470,19 +470,19 @@ class CheckerImpl {
 			if(whenToken(new TokenType[]{TokenType.SPLUS, TokenType.SMINUS})) {
 				rtype = term();
 				if(ltype != VariableType.INTEGER || rtype != VariableType.INTEGER)
-					throw new RuntimeException(linum + " : type mismatch" + "\n"
+					throw new RuntimeException("Line\t\t\t\t" + linum + " : type mismatch" + "\n"
 							+ "\t left : " + ltype + "\n"
 							+ "\t right : " + rtype + "\n"
 							+ "\t expected : " + VariableType.INTEGER);
 			} else if(whenToken(TokenType.SOR)) {
 				rtype = term();
 				if(ltype != VariableType.BOOLEAN || rtype != VariableType.BOOLEAN)
-					throw new RuntimeException(linum + " : type mismatch" + "\n"
+					throw new RuntimeException("Line\t\t\t\t" + linum + " : type mismatch" + "\n"
 							+ "\t left : " + ltype + "\n"
 							+ "\t right : " + rtype + "\n"
 							+ "\t expected : " + VariableType.BOOLEAN);
 			} else {
-				new RuntimeException("unknown error at" + linum);
+				new RuntimeException("Line\t\t\t\t" + "unknown error at" + linum);
 			}
 			ltype = rtype;
 		}
@@ -501,7 +501,7 @@ class CheckerImpl {
 				int linum = getLineNumber();
 				rtype = factor();
 				if(ltype != VariableType.INTEGER || rtype != VariableType.INTEGER)
-					throw new RuntimeException(linum + " : type mismatch" + "\n"
+					throw new RuntimeException("Line\t\t\t\t" + linum + " : type mismatch" + "\n"
 							+ "\t left : " + ltype + "\n"
 							+ "\t right : " + rtype + "\n"
 							+ "\t expected : " + VariableType.INTEGER);
@@ -509,13 +509,13 @@ class CheckerImpl {
 				int linum = getLineNumber();
 				rtype = factor();
 				if(ltype != VariableType.BOOLEAN || rtype != VariableType.BOOLEAN)
-					throw new RuntimeException(linum + " : type mismatch" + "\n"
+					throw new RuntimeException("Line\t\t\t\t" + linum + " : type mismatch" + "\n"
 							+ "\t left : " + ltype + "\n"
 							+ "\t right : " + rtype + "\n"
 							+ "\t expected : " + VariableType.BOOLEAN);
 			} else {
 				int linum = getLineNumber();
-				throw new RuntimeException(linum + " : unknown error");
+				throw new RuntimeException("Line\t\t\t\t" + linum + " : unknown error");
 			}
 		}
 		return ltype;
