@@ -26,9 +26,9 @@ class CheckerImpl {
 	}
 	
 	private void fail(Token t) {
-		throw new RuntimeException("unexpected " + t.getTokenType().name() 
+		throw new RuntimeException("syntax error: unexpected token " + t.getTokenType().name() 
 				+ " " + t.getValue()
-				+ " near at line " + t.getLineNumber() + "\n"+ data);
+				+ " near at line " + t.getLineNumber());
 	}
 	
 	private void failType(Token t, VariableType actual, VariableType expected) {
@@ -172,7 +172,7 @@ class CheckerImpl {
 			int linum = getLineNumber();
 			for(Variable i : vars) {
 				if(env.hasDefinedInCurrentEnv(i.getName()))
-					throw new RuntimeException(i.getName() + "has already defined at " + linum);
+					throw new RuntimeException(i.getName() + " has already defined at " + linum);
 				i.setType(type);
 				env.addVariable(i);
 			}
@@ -342,13 +342,13 @@ class CheckerImpl {
 				if(p == null) {
 					throw new RuntimeException("undefined procedure " + t.getValue() +" at " + t.getLineNumber());
 				} else if(p.getType() != VariableType.PROCEDURE) {
-					throw new RuntimeException(p.getName() + " is not procedure at " + t.getLineNumber() + "\n");
+					throw new RuntimeException(p.getName() + " is not procedure at " + t.getLineNumber());
 				} else if(!args.equals(p.getArg())){
 					for(int i = 0, size = args.size(); i < size; i++) {
 						if(!args.get(i).canConvert(p.getArg().get(i)))
 							throw new RuntimeException("type mismatch at " + t.getLineNumber() + "\n" +
 									"actual:  " + p.getName() + "(" + args + ")" + "\n" +
-									"expected:" + p.getName() + "(" + p.getArg() + ")" + "\n");
+									"expected:" + p.getName() + "(" + p.getArg() + ")");
 					}
 				}
 			} else if (testToken(new TokenType[]{TokenType.SASSIGN, TokenType.SLBRACKET})){
@@ -359,7 +359,7 @@ class CheckerImpl {
 				if(!ltype.canConvert(rtype)) {
 					throw new RuntimeException("type mismatch at assginment at " + t.getLineNumber() + "\n" +
 							"left: " + ltype + "\n" +
-							"right:" + rtype + "\n");
+							"right:" + rtype);
 				}
 			} else {
 				//non argument function call;
@@ -367,7 +367,7 @@ class CheckerImpl {
 				if(p == null) {
 					throw new RuntimeException("undefined procedure " + t.getValue() +" at " + t.getLineNumber());
 				} else if(p.getType() != VariableType.PROCEDURE) {
-					throw new RuntimeException(p.getName() + " is not procedure at " + t.getLineNumber() + "\n");
+					throw new RuntimeException(p.getName() + " is not procedure at " + t.getLineNumber());
 				}
 			}
 			break;
@@ -408,7 +408,7 @@ class CheckerImpl {
 		
 		linum = getLineNumber();
 		if(!v.getType().isArray()) {
-			throw new RuntimeException( name + "is not array at " + linum);
+			throw new RuntimeException( name + " is not array at " + linum);
 		}
 		
 		if(whenToken(TokenType.SLBRACKET)) {
