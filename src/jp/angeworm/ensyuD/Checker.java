@@ -171,7 +171,7 @@ class CheckerImpl {
 			int linum = getLineNumber();
 			for(Variable i : vars) {
 				if(env.hasDefinedInCurrentEnv(i.getName()))
-					throw new RuntimeException("Line\t\t\t\t" + i.getName() + " has already defined at " + linum);
+					throw new RuntimeException("Line\t\t\t\t" + linum + " : " + i.getName() + " has already defined");
 				i.setType(type);
 				env.addVariable(i);
 			}
@@ -356,7 +356,7 @@ class CheckerImpl {
 				expectToken(TokenType.SASSIGN);
 				VariableType rtype = expression();
 				if(!ltype.canConvert(rtype)) {
-					throw new RuntimeException("Line\t\t\t\t" + "type mismatch at assginment at " + t.getLineNumber() + "\n" +
+					throw new RuntimeException("Line\t\t\t\t" + t.getLineNumber() + " : " + "type mismatch at assginment" + "\n" +
 							"left: " + ltype + "\n" +
 							"right:" + rtype);
 				}
