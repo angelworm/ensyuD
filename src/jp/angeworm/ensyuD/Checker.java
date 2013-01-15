@@ -318,7 +318,7 @@ class CheckerImpl {
 		case SIF:
 			type = expression();
 			if(type != VariableType.BOOLEAN)
-				throw new RuntimeException("Line\t\t\t\t" + t.getLineNumber() + " : invalid predicate type " + type);
+				throw new RuntimeException("Line\t\t\t\t" + t.getLineNumber() + " : invalid predicate type " + type + ". it must be bool.");
 			expectToken(TokenType.STHEN);
 			compound();
 			if(testToken(TokenType.SELSE)) {
@@ -329,7 +329,7 @@ class CheckerImpl {
 		case SWHILE:
 			type = expression();
 			if(type != VariableType.BOOLEAN)
-				throw new RuntimeException("Line\t\t\t\t" + t.getLineNumber() + "invalid predicate type " + type);
+				throw new RuntimeException("Line\t\t\t\t" + t.getLineNumber() + "invalid predicate type " + type + ". it must be bool.");
 			expectToken(TokenType.SDO);
 			sentence();
 			break;
@@ -355,6 +355,11 @@ class CheckerImpl {
 				VariableType ltype = variable();
 				expectToken(TokenType.SASSIGN);
 				VariableType rtype = expression();
+				if(ltype.isArray()) {
+					throw new RuntimeException("Line\t\t\t\t" + t.getLineNumber() + " : " + "type mismatch at assginment(left cant be array)" + "\n" +
+							"left: " + ltype + "\n" +
+							"right:" + rtype);
+				}
 				if(!ltype.canConvert(rtype)) {
 					throw new RuntimeException("Line\t\t\t\t" + t.getLineNumber() + " : " + "type mismatch at assginment" + "\n" +
 							"left: " + ltype + "\n" +
