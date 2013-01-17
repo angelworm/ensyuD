@@ -1,10 +1,10 @@
 package jp.angeworm.ensyuD.language;
 
 public class AssignSentence implements Sentence {
-	public Variable lvalue;
-	public Expression rvalue;
+	public VariableAssign lvalue;
+	public Value rvalue;
 	
-	public AssignSentence(Variable lvalue, Expression rvalue) {
+	public AssignSentence(VariableAssign lvalue, Value rvalue) {
 		super();
 		this.lvalue = lvalue;
 		this.rvalue = rvalue;

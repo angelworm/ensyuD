@@ -9,7 +9,7 @@ import jp.angeworm.ensyuD.TokenType;
 import jp.angeworm.ensyuD.language.*;
 
 public class Parser {
-	public static ParseTree parse(List<Token> tokens) {
+	public static PascalLike parse(List<Token> tokens) {
 		return (new ParserImpl(tokens)).parse();
 	}
 }
@@ -271,7 +271,7 @@ class ParserImpl {
 	}
 	
 	private Sentence sentence() {
-		Expression cond;
+		Value cond;
 		
 		Token t = popToken();
 		switch(t.getTokenType()) {
@@ -295,106 +295,178 @@ class ParserImpl {
 			return new WhileSentence(cond, whileblock);
 		case SIDENTIFIER:
 			if(whenToken(TokenType.SLPAREN)) {
-				expressions();
+				List<Value> args = expressions();
 				expectToken(TokenType.SRPAREN);
+				
+				return new ApplySentence(t.getValue(), args);
 			} else if (testToken(new TokenType[]{TokenType.SASSIGN, TokenType.SLBRACKET})){
 				pushToken(t);
-				variable();
+				VariableAssign va = variable();
 				expectToken(TokenType.SASSIGN);
-				expression();
+				Value rexpr = expression();
+				return new AssignSentence(va, rexpr);
 			} else {
-				//non argument function call;
+				return new ApplySentence(t.getValue());
 			}
-			break;
 		case SREADLN:
 			if(!whenToken(TokenType.SLPAREN)) break;
-			var_names();
+			List<String> va = var_names();
+			List<Value>  arg_r = new LinkedList<Value>();
+			for(String i : va) {
+				arg_r.add(new VariableAssign(i, "variable"));
+			}
+			
 			expectToken(TokenType.SRPAREN);
-			break;
+			return new ApplySentence(t.getValue(), arg_r);
 		case SWRITELN:
 			if(!whenToken(TokenType.SLPAREN)) break;
-			expressions();
+			List<Value> arg_w = expressions();
 			expectToken(TokenType.SRPAREN);
-			break;
+			return new ApplySentence(t.getValue(), arg_w);
 		default:
-			fail(t);	
+			fail(t);
+			return null;
 		}
+		return null;
 	}
 	
-	private void variable() {
-		expectToken(TokenType.SIDENTIFIER);
+	private VariableAssign variable() {
+		Token t = getTokenWhen(TokenType.SIDENTIFIER);
+		Value index = null;
 		if(whenToken(TokenType.SLBRACKET)) {
-			expression();
+			index = expression();
 			expectToken(TokenType.SRBRACKET);
 		}
+		return new VariableAssign(t.getValue(), "variable", index);
 	}
 	
-	private void expressions() {
-		expression();
+	private List<Value> expressions() {
+		List<Value> ret = new LinkedList<Value>();
+		ret.add(expression());
 		while(whenToken(TokenType.SCOMMA)) {
-			expression();
+			ret.add(expression());
 		}
+		return ret;
 	}
 
-	private void expression() {
+	
+	private Value expression() {
 		TokenType[] op = new TokenType[]{
 				TokenType.SEQUAL,TokenType.SNOTEQUAL,
 				TokenType.SLESS,TokenType.SLESSEQUAL,
 				TokenType.SGREAT,TokenType.SGREATEQUAL};
 		
-		simple_expression();
-		if(whenToken(op)){
-			simple_expression();
+		Value ret = simple_expression();
+		if(testToken(op)){
+			Token t = getTokenWhen(op);
+			Value rexp = simple_expression();
+			
+			List<Value> operands = new LinkedList<Value>();
+			operands.add(ret);
+			operands.add(rexp);
+			ret = new Expression(t.getValue(), operands, new Type("boolean"));
 		}
+		return ret;
 	}
 	
-	private void simple_expression() {
+	private Value simple_expression_r() {
 		TokenType[] op = new TokenType[]{
 				TokenType.SPLUS, TokenType.SMINUS, TokenType.SOR};
-		
-		whenToken(new TokenType[]{TokenType.SPLUS, TokenType.SMINUS});
-		term();
-		while(whenToken(op)) {
-			term();
+
+		Value ret = term();
+		if(testToken(op)) {
+			Token t = getTokenWhen(op);
+			Value rexp = simple_expression_r();
+			
+			List<Value> operands = new LinkedList<Value>();
+			operands.add(ret);
+			operands.add(rexp);
+			if(t.getTokenType() == TokenType.SOR){
+				ret = new Expression(t.getValue(), operands, new Type("boolean"));
+			} else {
+				ret = new Expression(t.getValue(), operands, new Type("integer"));
+			}
 		}
+		return ret;
 	}
 	
-	private ParseTree term() {
+	private Value simple_expression() {
+		
+		Value ret = null;
+		if(testToken(new TokenType[]{TokenType.SPLUS, TokenType.SMINUS})) {
+			Token t = getTokenWhen(new TokenType[]{TokenType.SPLUS, TokenType.SMINUS});
+			
+			ret = simple_expression_r();
+			
+			if(ret instanceof Expression) {
+				Value v = ((Expression) ret).operands.get(0);
+				List<Value> operands = new LinkedList<Value>();
+				operands.add(v);
+				((Expression) ret).operands.set(0, new Expression(t.getValue(), operands, new Type("integer")));
+			} else{
+				List<Value> operands = new LinkedList<Value>();
+				operands.add(ret);
+				ret = new Expression(t.getValue(), operands, new Type("integer"));
+			}
+		} else {
+			ret = simple_expression_r();
+		}
+		
+		return ret;
+	}
+	
+	private Value term() {
 		TokenType[] op = new TokenType[]{
 				TokenType.SSTAR, TokenType.SDIVD, TokenType.SMOD, TokenType.SAND};
 		
-		factor();
-		while(whenToken(op)) {
-			factor();
+		Value ret = factor();
+		if(testToken(op)) {
+			Token t = getTokenWhen(op);
+			Value rexp = term();
+			
+			List<Value> operands = new LinkedList<Value>();
+			operands.add(ret);
+			operands.add(rexp);
+			if(t.getTokenType() == TokenType.SAND){
+				ret = new Expression(t.getValue(), operands, new Type("boolean"));
+			} else {
+				ret = new Expression(t.getValue(), operands, new Type("integer"));
+			}
 		}
+		return ret;
+
 	}
 	
-	private ParseTree factor() {
+	private Value factor() {
 //		System.out.println("factor " + data.get(0).getTokenType().name() + ":" + data.get(0).getValue());
 
 		Token t = popToken();
 		switch(t.getTokenType()) {
 		case SCONSTANT:
+			return new Value(t.getValue(), new Type("integer"));
 		case SSTRING:
+			return new Value(t.getValue(), new Type("string"));
 		case SFALSE:
 		case STRUE:
-			return new ParseTree(t);
+			return new Value(t.getValue(), new Type("boolean"));
 		case SIDENTIFIER:
 			pushToken(t);
 			return variable();
 		case SLPAREN:
-			ParseTree pt = new ParseTree(t, expression());
+			Value pt = expression();
 			expectToken(TokenType.SRPAREN);
 			return pt;
 		case SNOT:
-			return new ParseTree(t, factor());
-			break;
+			List<Value> operands = new LinkedList<Value>();
+			operands.add(factor());
+			return new Expression(t.getValue(), operands, new Type("boolean"));
 		default:
 			fail(t);
 		}
+		return null;
 	}
 
-	public ParseTree parse() {
+	public PascalLike parse() {
 		return program();
 	}
 }

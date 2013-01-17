@@ -1,17 +1,17 @@
 package jp.angeworm.ensyuD.language;
 
 public class IfSentence implements Sentence {
-	public Expression condition;
+	public Value condition;
 	public Sentence consequence;
 	public Sentence alternative;
 	
-	public IfSentence(Expression condition, Sentence consequence,
+	public IfSentence(Value cond, Sentence consequence,
 			Sentence alternative) {
-		this.condition = condition;
+		this.condition = cond;
 		this.consequence = consequence;
 		this.alternative = alternative;
 	}
-	public IfSentence(Expression condition, Sentence consequence) {
+	public IfSentence(Value condition, Sentence consequence) {
 		this.condition = condition;
 		this.consequence = consequence;
 		this.alternative = null;
