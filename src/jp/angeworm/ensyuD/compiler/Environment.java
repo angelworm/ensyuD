@@ -13,12 +13,14 @@ public class Environment {
 	
 	public Environment() {
 		vals = new LinkedList<Variable>();
+		labels = new LinkedList<String>();
 		nextEnv = null;
 		lg = new LabelGenerater();
 	}
 	
 	public Environment(LabelGenerater lg2) {
 		vals = new LinkedList<Variable>();
+		labels = new LinkedList<String>();
 		nextEnv = null;
 		lg = lg2;
 	}

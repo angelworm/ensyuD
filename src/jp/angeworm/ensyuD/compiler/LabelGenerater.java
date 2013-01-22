@@ -22,7 +22,7 @@ public class LabelGenerater {
 		String seeds = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 		
 		for(int i = sb.length(); i < 8; i++) {
-			sb.append(seeds.charAt(rnd.nextInt() % seeds.length()));
+			sb.append(seeds.charAt(Math.abs(rnd.nextInt()) % (seeds.length() - 1)));
 		}
 		return sb.toString();
 	}

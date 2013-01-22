@@ -7,8 +7,11 @@ import java.util.List;
 import jp.angeworm.ensyuD.language.*;
 
 public class Compile {
-	public static List<String> compile(PascalLike pl) {
-		return null;
+	public static String compile(PascalLike pl) {
+		 CompileImpl ci = new CompileImpl();
+		 StringBuilder code = new StringBuilder();
+		 ci.parse(code, pl);
+		 return code.toString();
 	}
 }
 
@@ -56,15 +59,26 @@ class CompileImpl {
 	
 	public void parse(StringBuilder code, PascalLike pl){
 		Environment env = makeEnvironment(pl);
+		
+		String prgname = lg.makeLabel("ANGEL");
+		code.append(prgname + " START MAIN" + "\n");
+		
+		parse(code, pl.sentence, env);
+		
+		code.append(spc     + " END" + "\n");
 	}
 	
 	public void parse(StringBuilder code, Sentence s, Environment e) {
+		System.out.println(s.toString());
 		if (s instanceof AssignSentence) {
 			// TODO
+			parseValue(code, ((AssignSentence) s).rvalue, e);
 		} else if(s instanceof ApplySentence ) {
 			// TODO
 		} else if(s instanceof BlockSentence) {
-			// TODO
+			for(Sentence line : ((BlockSentence) s).sentences) {
+				parse(code, line , e);
+			}
 		} else if(s instanceof IfSentence) {
 			// TODO
 		} else if(s instanceof WhileSentence) {
@@ -79,8 +93,13 @@ class CompileImpl {
 			// TODO
 		} else if(s instanceof Value) {
 			// TODO
+			if(s.type.equals(new Type("integer"))) {
+				int reg = takeRegister(code);
+				code.append(spc + " LAD GR" + reg + ", " + s.value + "\n");
+				return reg;
+			}
 		}
-		throw new RuntimeException(s.toString() + "is ?");
+		throw new RuntimeException(s.toString() + " is ?");
 	}
 
 	public int parseExpression(StringBuilder code, Expression exp, Environment e) {
@@ -103,10 +122,10 @@ class CompileImpl {
 				code.append(spc + " ; nothing to do(single append operation)" + "\n");
 				return reg;
 			} else if(exp.value.equals("-")) {
-				int leftReg  = rs.take();
+				int leftReg  = takeRegister(code);
 				int rightReg = parseValue(code, exp.operands.get(0), e);
 				code.append(spc + " SUB GR" + leftReg + ", GR" + rightReg + "\n");
-				rs.free();
+				freeRegister(code);
 				return leftReg;
 			}  if(exp.value.equals("not")) {
 				int reg = parseValue(code, exp.operands.get(0), e);
@@ -209,8 +228,9 @@ class CompileImpl {
 			code.append(spc + " LAD  GR" + leftReg+ ", 0, GR2" +"\n");
 			code.append(spc + " POP  GR2" + "\n");
 			code.append(spc + " POP  GR1" + "\n");
+		} else {
+			throw new RuntimeException(exp.value + " is ?");
 		}
-		throw new RuntimeException(exp.value + " is ?");
 	}
 	
 }

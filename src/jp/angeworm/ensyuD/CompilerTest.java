@@ -1,6 +1,8 @@
 package jp.angeworm.ensyuD;
 
 import static org.junit.Assert.*;
+import jp.angeworm.ensyuD.compiler.Compile;
+import jp.angeworm.ensyuD.compiler.Parser;
 import jp.angeworm.ensyuD.compiler.RegisterStack;
 
 import org.junit.Test;
@@ -56,4 +58,18 @@ public class CompilerTest {
 		assertEquals("free 0", rs.free(), 0);
 	}
 
+	@Test
+	public void ExpressionTest() {
+		String pascal = "" +
+				"		program pas102(output);" +
+				"" +
+				"var     n:integer;"+
+				"        dy:array [-12..8] of integer;"+
+				""+
+				"begin"+
+				"  n := 12 * 2 + 3 - 1"+
+				"end.";
+		System.out.println(Compile.compile(Parser.parse(Lexer.analyze(pascal))));
+		//assertEquals(Parser.parse(Lexer.analyze(pascal) ), "");
+	}
 }
