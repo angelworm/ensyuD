@@ -16,4 +16,8 @@ public class Variable {
 		name = null;
 		type = null;
 	}
+	
+	public String getName() {
+		return name;
+	}
 }

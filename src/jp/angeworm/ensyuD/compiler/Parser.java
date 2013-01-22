@@ -109,8 +109,12 @@ class ParserImpl {
 	}
 	private Token getTokenWhen(TokenType[] tts) {
 		Token t = data.pop();
+		boolean ret = false;
 		for(TokenType tt : tts){
-			if(t.getTokenType() != tt) fail(t);
+			if(t.getTokenType() == tt) ret = true;
+		}
+		if(!ret) {
+			fail(t);
 		}
 		return t;
 	}
@@ -139,7 +143,7 @@ class ParserImpl {
 	}
 	
 	private List<Variable> var_definition() {
-		if(testToken(TokenType.SVAR)) {
+		if(whenToken(TokenType.SVAR)) {
 			List<Variable> ret = new ArrayList<Variable>();
 			do {
 				List<String> names = var_names();
