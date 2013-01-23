@@ -145,9 +145,36 @@ class CompileImpl {
 				parse(code, line , e);
 			}
 		} else if(s instanceof IfSentence) {
-			// TODO
+			IfSentence s4 = (IfSentence) s;
+			int preg = parseValue(code, s4.condition, e);
+			String label1 = lg.makeLabel("IF");
+			String label2 = lg.makeLabel("IF");
+			code.append(spc + " AND GR" + preg + ", GR" + preg + "\n");
+			freeRegister(code);
+			code.append(spc + " JZE " + label1 + "\n");
+			parse(code, s4.consequence, e);
+			
+			if(s4.alternative != null) {
+				code.append(spc    + " JUMP " + label2 + "\n");
+				code.append(label1 + " NOP" + "\n");
+				parse(code, s4.alternative, e);
+				code.append(label2 + " NOP" + "\n");
+			} else {
+				code.append(label1 + " NOP" + "\n");
+			}
 		} else if(s instanceof WhileSentence) {
-			// TODO
+			WhileSentence s5 = (WhileSentence) s;
+			String labelhead = lg.makeLabel("WHL");
+			String labelend  = lg.makeLabel("WHL");
+			code.append(labelhead + " NOP" + "\n");
+			int preg = parseValue(code, s5.condition, e);
+			code.append(labelhead + " AND GR" + preg + ", GR" + preg + "\n");
+			code.append(spc + " JZE " + labelend + "\n");
+			
+			parse(code, s5.block, e);
+			
+			code.append(spc       + " JUMP " + labelhead + "\n");
+			code.append(labelend  + " NOP" + "\n");
 		}
 	}
 	public int parseValue(StringBuilder code, Value s, Environment e) {
