@@ -1,5 +1,6 @@
 package jp.angeworm.ensyuD.compiler;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -10,6 +11,7 @@ public class Environment implements Iterable<Environment.EnvironmentEntry> {
 	static public class EnvironmentEntry {
 		public Variable val;
 		public Location loc;
+		public List<Integer> defaultValue;
 	}
 	
 	private List<EnvironmentEntry> ent;
@@ -32,12 +34,14 @@ public class Environment implements Iterable<Environment.EnvironmentEntry> {
 		EnvironmentEntry e = new EnvironmentEntry();
 		e.val = v;
 		e.loc = new Location(lg.makeLabel("V"));
+		e.defaultValue = null;
 		ent.add(e);
 	}
 	public void addVariable(Variable v, String prefix) {
 		EnvironmentEntry e = new EnvironmentEntry();
 		e.val = v;
 		e.loc = new Location(lg.makeLabel(prefix));
+		e.defaultValue = null;
 		ent.add(e);
 	}
 	
@@ -45,8 +49,47 @@ public class Environment implements Iterable<Environment.EnvironmentEntry> {
 		EnvironmentEntry e = new EnvironmentEntry();
 		e.val = v;
 		e.loc = new Location(type ,id);
+		e.defaultValue = null;
 		ent.add(e);
 	}
+	
+	public void addVariableWithDefault(Variable v, int defaultValue) {
+		addVariableWithDefault(v,defaultValue, "V");
+	}
+	public void addVariableWithDefault(Variable v, List<Integer> defaultValue) {
+		addVariableWithDefault(v,defaultValue, "V");
+	}
+	public void addVariableWithDefault(Variable v, int defaultValue, String prefix) {
+		EnvironmentEntry e = new EnvironmentEntry();
+		e.val = v;
+		e.loc = new Location(lg.makeLabel(prefix));
+		e.defaultValue = new ArrayList<Integer>();
+		e.defaultValue.add(defaultValue);
+		ent.add(e);
+	}
+	public void addVariableWithDefault(Variable v, List<Integer> defaultValue, String prefix) {
+		EnvironmentEntry e = new EnvironmentEntry();
+		e.val = v;
+		e.loc = new Location(lg.makeLabel(prefix));
+		e.defaultValue = new ArrayList<Integer>(defaultValue);
+		ent.add(e);
+	}
+	public void addVariable(Variable v, int defaultValue, Location.LocationType type, int id) {
+		EnvironmentEntry e = new EnvironmentEntry();
+		e.val = v;
+		e.loc = new Location(type ,id);
+		e.defaultValue = new ArrayList<Integer>();
+		e.defaultValue.add(defaultValue);
+		ent.add(e);
+	}
+	public void addVariable(Variable v, List<Integer> defaultValue, Location.LocationType type, int id) {
+		EnvironmentEntry e = new EnvironmentEntry();
+		e.val = v;
+		e.loc = new Location(type ,id);
+		e.defaultValue = new ArrayList<Integer>(defaultValue);
+		ent.add(e);
+	}
+
 
 	public boolean hasDefinedInCurrentEnv(String name) {
 		for(EnvironmentEntry v : ent) {

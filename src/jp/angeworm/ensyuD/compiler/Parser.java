@@ -447,12 +447,16 @@ class ParserImpl {
 		Token t = popToken();
 		switch(t.getTokenType()) {
 		case SCONSTANT:
-			return new Value(t.getValue(), new Type("integer"));
+			return new ConstantValue(t.getValue(), new Type("integer"));
 		case SSTRING:
-			return new Value(t.getValue(), new Type("string"));
+			String tmp = t.getValue().substring(1, t.getValue().length() - 2);
+			if(tmp.length() > 1)
+				return new ConstantValue(tmp, new ArrayType("char", 0, tmp.length() - 1));
+			else
+				return new ConstantValue(tmp, new Type("char"));
 		case SFALSE:
 		case STRUE:
-			return new Value(t.getValue(), new Type("boolean"));
+			return new ConstantValue(t.getValue(), new Type("boolean"));
 		case SIDENTIFIER:
 			pushToken(t);
 			return variable();

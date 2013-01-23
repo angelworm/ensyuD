@@ -1,5 +1,6 @@
 package jp.angeworm.ensyuD.compiler;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -22,7 +23,7 @@ class CompileImpl {
 	
 	public CompileImpl() {
 		lg = new LabelGenerater(100);
-		rs = new RegisterStack(6);
+		rs = new RegisterStack(7);
 	}
 	
 	private int takeRegister(StringBuilder code) {
@@ -31,6 +32,16 @@ class CompileImpl {
 		
 		if(needPush) {
 			code.append(spc + " PUSH 0, GR" + index + "\n");
+		}
+		
+		return index;
+	}
+	private int takeRegister(StringBuilder code, int index) {
+		boolean needPush = rs.needStackPush(index - 1);
+		int i = rs.take(index - 1) + 1;
+		
+		if(needPush) {
+			code.append(spc + " PUSH 0, GR" + i + "\n");
 		}
 		
 		return index;
@@ -50,11 +61,22 @@ class CompileImpl {
 		List<Variable> vars = pl.vars;
 		Environment e = new Environment(lg);
 		
+		Variable wb = new Variable();
+		wb.type = new ArrayType("integer", 0, 255);
+		wb.name = "WRBUFFER";
+		e.addVariable(wb, "WRBUFFER");
+		
 		for(Variable v : vars) {
 			e.addVariable(v, "VAR");
 		}
 		
 		return e;
+	}
+	
+	private int getValue(List<Integer> l, int index) {
+		if(l == null) return 0;
+		if(index >= l.size() || 0 > index) return 0;
+		return l.get(index);
 	}
 	
 	public void writeEnvironment(StringBuilder code, Environment env) {
@@ -67,14 +89,14 @@ class CompileImpl {
 				
 				for(; min < 0; min++)
 					code.append(spc + " DC 0" + "\n");
-				code.append(ent.loc.getLabel() + " DC 0" + "\n");	
+				code.append(ent.loc.getLabel() + " DC " + getValue(ent.defaultValue, min) + "\n");	
 				min++;
 				for(; min <= t.max; min++)
-					code.append(spc + " DC 0" + "\n");
+					code.append(spc + " DC " + getValue(ent.defaultValue, min) + "\n");	
 			} else if (ent.val.type instanceof FunctionType) {
 				continue;
 			} else {
-				code.append(ent.loc.getLabel() + " DC 0" + "\n");
+				code.append(ent.loc.getLabel() + " DC "+ getValue(ent.defaultValue, 0) + "\n");
 			}
 		}
 	}
@@ -97,10 +119,27 @@ class CompileImpl {
 	public void parse(StringBuilder code, Sentence s, Environment e) {
 		System.out.println(s.toString());
 		if (s instanceof AssignSentence) {
-			// TODO
-			parseValue(code, ((AssignSentence) s).rvalue, e);
+			AssignSentence s2 = (AssignSentence) s;
+			Environment.EnvironmentEntry ent = e.find(s2.lvalue.value);
+			
+			VariableAssign lvalue = s2.lvalue; 
+			int rvalue = parseValue(code, s2.rvalue, e);
+			
+			if(lvalue.index != null) {
+				int indexReg = parseValue(code, lvalue.index, e);
+				code.append(spc + " ST   GR" + rvalue + ", " + ent.loc.getLabel() + ", GR" + indexReg + "\n");
+				freeRegister(code);
+			} else {
+				code.append(spc + " ST   GR" + rvalue + ", " + ent.loc.getLabel() + "\n");
+			}
+			freeRegister(code);
 		} else if(s instanceof ApplySentence ) {
 			// TODO
+			ApplySentence s3 = ((ApplySentence) s);
+			System.out.println(s3.callee);
+			if(s3.callee.equals("writeln")) {
+				parseWrite(code, s3, e);
+			}
 		} else if(s instanceof BlockSentence) {
 			for(Sentence line : ((BlockSentence) s).sentences) {
 				parse(code, line , e);
@@ -135,11 +174,36 @@ class CompileImpl {
 				
 				return valReg;
 			}
-		} else if(s instanceof Value) {
-			// TODO
-			if(s.type.equals(new Type("integer"))) {
+		} else if(s instanceof ConstantValue) {
+			if(s.type.type.equals("integer")) {
 				int reg = takeRegister(code);
 				code.append(spc + " LAD  GR" + reg + ", " + s.value + "\n");
+				return reg;
+			}
+			if(s.type.type.equals("boolean")) {
+				int reg = takeRegister(code);
+				int value = (s.value.equals("true") ? -1 : 0);
+				code.append(spc + " LAD  GR" + reg + ", " + value + "\n");
+				return reg;
+			}
+			if(s.type.type.equals("char")){
+				int reg = takeRegister(code);
+				if(s.value.length() == 1) {
+					int value = s.value.codePointAt(0);
+					code.append(spc + " LAD  GR" + reg + ", " + value + "\n");
+				} else {
+					Variable v = new Variable();
+					List<Integer> def = new ArrayList<Integer>(s.value.length());
+					for(byte b : s.value.getBytes()) {
+						def.add((int) b);
+					}
+					v.type = new ArrayType("integer", 0, s.value.length());
+					v.name = this.lg.makeLabel("TMP");
+					e.addVariableWithDefault(v, def);
+					
+					String label = e.find(v.name).loc.getLabel();
+					code.append(spc + " LAD  GR" + reg + ", " + label + "\n");
+				}
 				return reg;
 			}
 		}
@@ -168,7 +232,8 @@ class CompileImpl {
 			} else if(exp.value.equals("-")) {
 				int leftReg  = takeRegister(code);
 				int rightReg = parseValue(code, exp.operands.get(0), e);
-				code.append(spc + " SUB GR" + leftReg + ", GR" + rightReg + "\n");
+				code.append(spc + " LAD  GR" + leftReg + ", 0" + "\n");
+				code.append(spc + " SUBA GR" + leftReg + ", GR" + rightReg + "\n");
 				freeRegister(code);
 				return leftReg;
 			}  if(exp.value.equals("not")) {
@@ -274,5 +339,58 @@ class CompileImpl {
 			throw new RuntimeException(exp.value + " is ?");
 		}
 	}
-	
+	public void parseWrite(StringBuilder code, ApplySentence s, Environment e) {
+		System.out.println(s.toString());
+		
+		List<Value> args = s.value;
+		
+		takeRegister(code, 6);
+		takeRegister(code, 7);
+		code.append(spc + " LAD  GR6, 0" + "\n");
+		code.append(spc + " LAD  GR7, WRBUFFER" + "\n");
+		
+		for(Value arg : args) {
+			Type t = arg.type;
+			if(arg instanceof VariableAssign) {
+				t = e.find(arg.value).val.type;
+			}
+			
+			if(t instanceof ArrayType && t.type != "char") {
+				throw new RuntimeException("Compile Error: write: Array except String appried.");
+			} else if (t instanceof ArrayType){
+				ArrayType ta = (ArrayType) t;
+				int sizeReg  = takeRegister(code, 1);
+				code.append(spc + " LAD  GR" + sizeReg + ", " + (ta.max - ta.min + 1) + "\n");
+				int writeReg = takeRegister(code, 2);
+				int valueReg = parseValue(code, arg, e);
+				code.append(spc + " LD  GR" + writeReg + ", GR" + valueReg + "\n");
+				code.append(spc + " CALL WRTSTR" + "\n");
+				
+				freeRegister(code);
+				freeRegister(code);
+				freeRegister(code);
+				
+			} else if(t.type.equals("char"))  {
+				int valueReg = parseValue(code, arg, e);
+				int writeReg  = takeRegister(code, 2);
+				code.append(spc + " LD  GR" + writeReg + ", GR" + valueReg + "\n");
+				code.append(spc + " CALL WRTCHAR" + "\n");
+				freeRegister(code);
+				freeRegister(code);
+			} else if(t.type.equals("integer")) {
+				int valueReg = parseValue(code, arg, e);
+				int writeReg  = takeRegister(code, 2);
+				code.append(spc + " LD  GR" + writeReg + ", GR" + valueReg + "\n");
+				code.append(spc + " CALL WRTINT" + "\n");
+				freeRegister(code);
+				freeRegister(code);
+			} else {
+				throw new RuntimeException("unhandled format");
+			}
+		}
+		
+		code.append(spc + " CALL WRTLN" + "\n");
+		freeRegister(code);
+		freeRegister(code);
+	}
 }

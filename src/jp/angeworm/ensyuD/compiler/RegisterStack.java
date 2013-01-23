@@ -4,7 +4,7 @@ import java.util.*;
 
 public class RegisterStack {
 	private Stack<Integer> stack;
-	private List<Boolean> register;
+	private List<Boolean>  register;
 	private Deque<Integer> lastappend;
 	
 	public RegisterStack(int capacity) {
@@ -15,15 +15,29 @@ public class RegisterStack {
 		}
 		lastappend = new LinkedList<Integer>();
 	}
-	
+
 	public boolean needStackPush() {
 		return !register.contains(false);
+	}
+
+	public boolean needStackPush(int index) {
+		return register.get(index);
 	}
 	
 	public int take() {
 		int index = register.indexOf(false);
 		if(index == -1) {
 			index = lastappend.remove();
+			stack.add(index);
+		}
+		lastappend.add(index);
+		register.set(index, true);
+		return index;
+	}
+	
+	public int take(int index) {
+		if(register.get(index)) {
+			lastappend.remove(index);
 			stack.add(index);
 		}
 		lastappend.add(index);
