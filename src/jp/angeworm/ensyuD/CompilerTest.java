@@ -67,7 +67,7 @@ public class CompilerTest {
 				"        dy:array [-12..8] of integer;"+
 				""+
 				"begin"+
-				"  n := 12 * 2 * 3 + 3 - 1"+
+				"  n := 12 * 2 * 3 + 3 - n "+
 				"end.";
 		System.out.println(Compile.compile(Parser.parse(Lexer.analyze(pascal))));
 		//assertEquals(Parser.parse(Lexer.analyze(pascal) ), "");

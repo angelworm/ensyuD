@@ -1,7 +1,7 @@
 package jp.angeworm.ensyuD.language;
 
 public class VariableAssign extends Value{
-	Value index;
+	public Value index;
 	
 	public VariableAssign(String name2, Type type2, Value index2) {
 		super(name2, type2);

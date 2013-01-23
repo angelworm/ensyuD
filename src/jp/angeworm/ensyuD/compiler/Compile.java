@@ -57,6 +57,28 @@ class CompileImpl {
 		return e;
 	}
 	
+	public void writeEnvironment(StringBuilder code, Environment env) {
+		for(Environment.EnvironmentEntry ent : env) {
+			if(ent.loc.type != Location.LocationType.HeapLocation) continue;
+			
+			if(ent.val.type instanceof ArrayType) {
+				ArrayType t = (ArrayType) ent.val.type;
+				int min = t.min;
+				
+				for(; min < 0; min++)
+					code.append(spc + " DC 0" + "\n");
+				code.append(ent.loc.getLabel() + " DC 0" + "\n");	
+				min++;
+				for(; min <= t.max; min++)
+					code.append(spc + " DC 0" + "\n");
+			} else if (ent.val.type instanceof FunctionType) {
+				continue;
+			} else {
+				code.append(ent.loc.getLabel() + " DC 0" + "\n");
+			}
+		}
+	}
+	
 	public void parse(StringBuilder code, PascalLike pl){
 		Environment env = makeEnvironment(pl);
 		
@@ -66,6 +88,9 @@ class CompileImpl {
 		parse(code, pl.sentence, env);
 		
 		code.append(spc     + " RET" + "\n");
+		
+		writeEnvironment(code, env);
+		
 		code.append(spc     + " END" + "\n");
 	}
 	
@@ -92,12 +117,29 @@ class CompileImpl {
 			Expression exp = (Expression)s;
 			return parseExpression(code, exp, e);
 		} else if(s instanceof VariableAssign) {
-			// TODO
+			Environment.EnvironmentEntry ent = e.find(s.value);
+			
+			if(ent.val.type instanceof ArrayType) {
+				int valReg   = takeRegister(code);
+				int indexReg = takeRegister(code);
+				
+				code.append(spc + " LAD  GR" + indexReg + ", " + ((VariableAssign) s).index + "\n");
+				code.append(spc + " LD   GR" + valReg + ", " + ent.loc.getLabel() + ", GR" + indexReg + "\n");
+
+				freeRegister(code);
+				return valReg;
+			} else {
+				int valReg   = takeRegister(code);
+				
+				code.append(spc + " LD   GR" + valReg + ", " + ent.loc.getLabel() + "\n");
+				
+				return valReg;
+			}
 		} else if(s instanceof Value) {
 			// TODO
 			if(s.type.equals(new Type("integer"))) {
 				int reg = takeRegister(code);
-				code.append(spc + " LAD GR" + reg + ", " + s.value + "\n");
+				code.append(spc + " LAD  GR" + reg + ", " + s.value + "\n");
 				return reg;
 			}
 		}
@@ -202,19 +244,6 @@ class CompileImpl {
 			code.append(jpfalse + " LAD  GR" + leftReg + ", 0" + "\n");
 			code.append(jpend   + " NOP" + "\n");
 		} else if(exp.value.equals("*")){
-			// TODO
-			/*
-			code.append(spc + " PUSH 0, GR1" + "\n");
-			code.append(spc + " PUSH 0, GR2" + "\n");
-			code.append(spc + " LAD  GR1, 0, GR" + leftReg  +"\n");
-			code.append(spc + " LAD  GR2, 0, GR" + rightReg +"\n");
-			code.append(spc + " CALL MUL" + "\n");
-			code.append(spc + " LAD  GR0, 0, GR2" +"\n");
-			code.append(spc + " POP  GR2" + "\n");
-			code.append(spc + " POP  GR1" + "\n");
-			code.append(spc + " LAD  GR" + leftReg + ",0" + "\n");
-			code.append(spc + " ADDA GR" + leftReg + ",GR0" + "\n");
-			*/
 			code.append(spc + " PUSH 0, GR" + leftReg  +"\n");
 			code.append(spc + " PUSH 0, GR" + rightReg +"\n");
 			code.append(spc + " CALL MULT" + "\n");
