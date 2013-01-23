@@ -323,14 +323,18 @@ class ParserImpl {
 			expectToken(TokenType.SRPAREN);
 			return new ApplySentence(t.getValue(), arg_r);
 		case SWRITELN:
-			if(!whenToken(TokenType.SLPAREN)) break;
-			List<Value> arg_w = expressions();
-			expectToken(TokenType.SRPAREN);
-			return new ApplySentence(t.getValue(), arg_w);
+			if(whenToken(TokenType.SLPAREN)) {
+				List<Value> arg_w = expressions();
+				expectToken(TokenType.SRPAREN);
+				return new ApplySentence(t.getValue(), arg_w);
+			} else {
+				return new ApplySentence(t.getValue(), new LinkedList<Value>());
+			}
 		default:
 			fail(t);
 			return null;
 		}
+		fail(t);
 		return null;
 	}
 	
@@ -449,7 +453,7 @@ class ParserImpl {
 		case SCONSTANT:
 			return new ConstantValue(t.getValue(), new Type("integer"));
 		case SSTRING:
-			String tmp = t.getValue().substring(1, t.getValue().length() - 2);
+			String tmp = t.getValue().substring(1, t.getValue().length() - 1);
 			if(tmp.length() > 1)
 				return new ConstantValue(tmp, new ArrayType("char", 0, tmp.length() - 1));
 			else

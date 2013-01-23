@@ -117,7 +117,6 @@ class CompileImpl {
 	}
 	
 	public void parse(StringBuilder code, Sentence s, Environment e) {
-		System.out.println(s.toString());
 		if (s instanceof AssignSentence) {
 			AssignSentence s2 = (AssignSentence) s;
 			Environment.EnvironmentEntry ent = e.find(s2.lvalue.value);
@@ -136,7 +135,6 @@ class CompileImpl {
 		} else if(s instanceof ApplySentence ) {
 			// TODO
 			ApplySentence s3 = ((ApplySentence) s);
-			System.out.println(s3.callee);
 			if(s3.callee.equals("writeln")) {
 				parseWrite(code, s3, e);
 			}
@@ -168,7 +166,7 @@ class CompileImpl {
 			String labelend  = lg.makeLabel("WHL");
 			code.append(labelhead + " NOP" + "\n");
 			int preg = parseValue(code, s5.condition, e);
-			code.append(labelhead + " AND GR" + preg + ", GR" + preg + "\n");
+			code.append(spc + " AND GR" + preg + ", GR" + preg + "\n");
 			code.append(spc + " JZE " + labelend + "\n");
 			
 			parse(code, s5.block, e);
@@ -178,7 +176,6 @@ class CompileImpl {
 		}
 	}
 	public int parseValue(StringBuilder code, Value s, Environment e) {
-		System.out.println(s.toString());
 		if (s instanceof Expression) {
 			Expression exp = (Expression)s;
 			return parseExpression(code, exp, e);
@@ -187,9 +184,8 @@ class CompileImpl {
 			
 			if(ent.val.type instanceof ArrayType) {
 				int valReg   = takeRegister(code);
-				int indexReg = takeRegister(code);
+				int indexReg = parseValue(code, ((VariableAssign) s).index, e);
 				
-				code.append(spc + " LAD  GR" + indexReg + ", " + ((VariableAssign) s).index + "\n");
 				code.append(spc + " LD   GR" + valReg + ", " + ent.loc.getLabel() + ", GR" + indexReg + "\n");
 
 				freeRegister(code);
@@ -202,6 +198,7 @@ class CompileImpl {
 				return valReg;
 			}
 		} else if(s instanceof ConstantValue) {
+			System.out.print(s.value);
 			if(s.type.type.equals("integer")) {
 				int reg = takeRegister(code);
 				code.append(spc + " LAD  GR" + reg + ", " + s.value + "\n");
@@ -224,7 +221,7 @@ class CompileImpl {
 					for(byte b : s.value.getBytes()) {
 						def.add((int) b);
 					}
-					v.type = new ArrayType("integer", 0, s.value.length());
+					v.type = new ArrayType("integer", 0, s.value.length() - 1);
 					v.name = this.lg.makeLabel("TMP");
 					e.addVariableWithDefault(v, def);
 					
@@ -317,7 +314,7 @@ class CompileImpl {
 			code.append(spc     + " JUMP " + jpend + "\n");
 			code.append(jpfalse + " LAD  GR" + leftReg + ", 0" + "\n");
 			code.append(jpend   + " NOP" + "\n");
-		} else if(exp.value.equals("<")){
+		} else if(exp.value.equals(">")){
 			String jpfalse = lg.makeLabel("GT");
 			String jpend = lg.makeLabel("GT");
 			code.append(spc     + " CPA  GR" + leftReg + ", GR" + rightReg + "\n");
@@ -326,7 +323,7 @@ class CompileImpl {
 			code.append(spc     + " JUMP " + jpend + "\n");
 			code.append(jpfalse + " LAD  GR" + leftReg + ", -1" + "\n");
 			code.append(jpend   + " NOP  " + "\n");
-		} else if(exp.value.equals(">=")){
+		} else if(exp.value.equals("<=")){
 			String jpfalse = lg.makeLabel("LE");
 			String jpend = lg.makeLabel("LE");
 			code.append(spc     + " CPA  GR" + leftReg + ", GR" + rightReg + "\n");
@@ -343,32 +340,22 @@ class CompileImpl {
 			code.append(spc + " POP  GR" + leftReg + "\n");
 
 		} else if(exp.value.equals("/") || exp.value.equals("div")){
-			// TODO
-			code.append(spc + " PUSH 0, GR1" + "\n");
-			code.append(spc + " PUSH 0, GR2" + "\n");
-			code.append(spc + " LAD  GR1, 0, GR" + leftReg  +"\n");
-			code.append(spc + " LAD  GR2, 0, GR" + rightReg +"\n");
-			code.append(spc + " CALL MUL" + "\n");
-			code.append(spc + " LAD  GR" + leftReg+ ", 0, GR2" +"\n");
-			code.append(spc + " POP  GR2" + "\n");
-			code.append(spc + " POP  GR1" + "\n");
+			code.append(spc + " PUSH 0, GR" + leftReg  +"\n");
+			code.append(spc + " PUSH 0, GR" + rightReg +"\n");
+			code.append(spc + " CALL DIV" + "\n");
+			code.append(spc + " POP  GR" + leftReg + "\n");
+			code.append(spc + " POP  GR0" + "\n");
 		} else if(exp.value.equals("mod")){
-			// TODO
-			code.append(spc + " PUSH 0, GR1" + "\n");
-			code.append(spc + " PUSH 0, GR2" + "\n");
-			code.append(spc + " LAD  GR1, 0, GR" + leftReg  +"\n");
-			code.append(spc + " LAD  GR2, 0, GR" + rightReg +"\n");
-			code.append(spc + " CALL MUL" + "\n");
-			code.append(spc + " LAD  GR" + leftReg+ ", 0, GR2" +"\n");
-			code.append(spc + " POP  GR2" + "\n");
-			code.append(spc + " POP  GR1" + "\n");
+			code.append(spc + " PUSH 0, GR" + leftReg  +"\n");
+			code.append(spc + " PUSH 0, GR" + rightReg +"\n");
+			code.append(spc + " CALL DIV" + "\n");
+			code.append(spc + " POP  GR0" + "\n");
+			code.append(spc + " POP  GR" + leftReg + "\n");
 		} else {
 			throw new RuntimeException(exp.value + " is ?");
 		}
 	}
 	public void parseWrite(StringBuilder code, ApplySentence s, Environment e) {
-		System.out.println(s.toString());
-		
 		List<Value> args = s.value;
 		
 		takeRegister(code, 6);
@@ -382,9 +369,7 @@ class CompileImpl {
 				t = e.find(arg.value).val.type;
 			}
 			
-			if(t instanceof ArrayType && t.type != "char") {
-				throw new RuntimeException("Compile Error: write: Array except String appried.");
-			} else if (t instanceof ArrayType){
+			if (t instanceof ArrayType && t.type == "char"){
 				ArrayType ta = (ArrayType) t;
 				int sizeReg  = takeRegister(code, 1);
 				code.append(spc + " LAD  GR" + sizeReg + ", " + (ta.max - ta.min + 1) + "\n");
@@ -401,7 +386,7 @@ class CompileImpl {
 				int valueReg = parseValue(code, arg, e);
 				int writeReg  = takeRegister(code, 2);
 				code.append(spc + " LD  GR" + writeReg + ", GR" + valueReg + "\n");
-				code.append(spc + " CALL WRTCHAR" + "\n");
+				code.append(spc + " CALL WRTCH" + "\n");
 				freeRegister(code);
 				freeRegister(code);
 			} else if(t.type.equals("integer")) {
