@@ -15,4 +15,8 @@ public class Value {
 		this.value = value;
 		this.type  = new Type(type);
 	}
+	
+	public String toString() {
+		return value;
+	}
 }

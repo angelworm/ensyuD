@@ -40,7 +40,7 @@ class CompileImpl {
 		int index = rs.free() + 1;
 		
 		if(needPop) {
-			code.append(spc + " POP GR" + index + "\n");
+			code.append(spc + " POP  GR" + index + "\n");
 		}
 		
 		return index;
@@ -61,10 +61,11 @@ class CompileImpl {
 		Environment env = makeEnvironment(pl);
 		
 		String prgname = lg.makeLabel("ANGEL");
-		code.append(prgname + " START MAIN" + "\n");
+		code.append(prgname + " START" + "\n");
 		
 		parse(code, pl.sentence, env);
 		
+		code.append(spc     + " RET" + "\n");
 		code.append(spc     + " END" + "\n");
 	}
 	
@@ -86,6 +87,7 @@ class CompileImpl {
 		}
 	}
 	public int parseValue(StringBuilder code, Value s, Environment e) {
+		System.out.println(s.toString());
 		if (s instanceof Expression) {
 			Expression exp = (Expression)s;
 			return parseExpression(code, exp, e);
@@ -138,76 +140,87 @@ class CompileImpl {
 	
 	public void handleExpression(StringBuilder code, Expression exp, int leftReg, int rightReg) {
 		if(exp.value.equals("+")) {
-			code.append(spc + " ADD GR" + leftReg + ", GR" + rightReg + "\n");
+			code.append(spc + " ADDA GR" + leftReg + ", GR" + rightReg + "\n");
 		} else if(exp.value.equals("-")){
-			code.append(spc + " SUB GR" + leftReg + ", GR" + rightReg + "\n");
+			code.append(spc + " SUBA GR" + leftReg + ", GR" + rightReg + "\n");
 		} else if(exp.value.equals("and")){
-			code.append(spc + " AND GR" + leftReg + ", GR" + rightReg + "\n");
+			code.append(spc + " AND  GR" + leftReg + ", GR" + rightReg + "\n");
 		} else if(exp.value.equals("or")){
-			code.append(spc + " OR GR" + leftReg + ", GR" + rightReg + "\n");
+			code.append(spc + " OR   GR" + leftReg + ", GR" + rightReg + "\n");
 		} else if(exp.value.equals("=")){
 			String jpfalse = lg.makeLabel("EQ");
 			String jpend = lg.makeLabel("EQ");
-			code.append(spc     + " CPL GR" + leftReg + ", GR" + rightReg + "\n");
-			code.append(spc     + " JNZ " + jpfalse + "\n");
-			code.append(spc     + " LAD GR" + leftReg + ", -1" + "\n");
+			code.append(spc     + " CPL  GR" + leftReg + ", GR" + rightReg + "\n");
+			code.append(spc     + " JNZ  " + jpfalse + "\n");
+			code.append(spc     + " LAD  GR" + leftReg + ", -1" + "\n");
 			code.append(spc     + " JUMP " + jpend + "\n");
-			code.append(jpfalse + " LAD GR" + leftReg + ", 0" + "\n");
+			code.append(jpfalse + " LAD  GR" + leftReg + ", 0" + "\n");
 			code.append(jpend   + " NOP" + "\n");
 		} else if(exp.value.equals("<>")){
 			String jpfalse = lg.makeLabel("NE");
 			String jpend = lg.makeLabel("NE");
-			code.append(spc     + " CPL GR" + leftReg + ", GR" + rightReg + "\n");
-			code.append(spc     + " JZE " + jpfalse + "\n");
-			code.append(spc     + " LAD GR" + leftReg + ", -1" + "\n");
+			code.append(spc     + " CPL  GR" + leftReg + ", GR" + rightReg + "\n");
+			code.append(spc     + " JZE  " + jpfalse + "\n");
+			code.append(spc     + " LAD  GR" + leftReg + ", -1" + "\n");
 			code.append(spc     + " JUMP " + jpend + "\n");
-			code.append(jpfalse + " LAD GR" + leftReg + ", 0" + "\n");
+			code.append(jpfalse + " LAD  GR" + leftReg + ", 0" + "\n");
 			code.append(jpend   + " NOP" + "\n");
 		} else if(exp.value.equals("<")){
 			String jpfalse = lg.makeLabel("LT");
 			String jpend = lg.makeLabel("LT");
-			code.append(spc     + " CPA GR" + leftReg + ", GR" + rightReg + "\n");
-			code.append(spc     + " JMI " + jpfalse + "\n");
-			code.append(spc     + " LAD GR" + leftReg + ", 0" + "\n");
+			code.append(spc     + " CPA  GR" + leftReg + ", GR" + rightReg + "\n");
+			code.append(spc     + " JMI  " + jpfalse + "\n");
+			code.append(spc     + " LAD  GR" + leftReg + ", 0" + "\n");
 			code.append(spc     + " JUMP " + jpend + "\n");
-			code.append(jpfalse + " LAD GR" + leftReg + ", -1" + "\n");
+			code.append(jpfalse + " LAD  GR" + leftReg + ", -1" + "\n");
 			code.append(jpend   + " NOP" + "\n");
 		} else if(exp.value.equals(">=")){
 			String jpfalse = lg.makeLabel("GE");
 			String jpend = lg.makeLabel("GE");
-			code.append(spc     + " CPA GR" + leftReg + ", GR" + rightReg + "\n");
-			code.append(spc     + " JMI " + jpfalse + "\n");
-			code.append(spc     + " LAD GR" + leftReg + ", -1" + "\n");
+			code.append(spc     + " CPA  GR" + leftReg + ", GR" + rightReg + "\n");
+			code.append(spc     + " JMI  " + jpfalse + "\n");
+			code.append(spc     + " LAD  GR" + leftReg + ", -1" + "\n");
 			code.append(spc     + " JUMP " + jpend + "\n");
-			code.append(jpfalse + " LAD GR" + leftReg + ", 0" + "\n");
+			code.append(jpfalse + " LAD  GR" + leftReg + ", 0" + "\n");
 			code.append(jpend   + " NOP" + "\n");
 		} else if(exp.value.equals("<")){
 			String jpfalse = lg.makeLabel("GT");
 			String jpend = lg.makeLabel("GT");
-			code.append(spc     + " CPA GR" + leftReg + ", GR" + rightReg + "\n");
-			code.append(spc     + " JPL " + jpfalse + "\n");
-			code.append(spc     + " LAD GR" + leftReg + ", 0" + "\n");
+			code.append(spc     + " CPA  GR" + leftReg + ", GR" + rightReg + "\n");
+			code.append(spc     + " JPL  " + jpfalse + "\n");
+			code.append(spc     + " LAD  GR" + leftReg + ", 0" + "\n");
 			code.append(spc     + " JUMP " + jpend + "\n");
-			code.append(jpfalse + " LAD GR" + leftReg + ", -1" + "\n");
-			code.append(jpend   + " NOP" + "\n");
+			code.append(jpfalse + " LAD  GR" + leftReg + ", -1" + "\n");
+			code.append(jpend   + " NOP  " + "\n");
 		} else if(exp.value.equals(">=")){
 			String jpfalse = lg.makeLabel("LE");
 			String jpend = lg.makeLabel("LE");
-			code.append(spc     + " CPA GR" + leftReg + ", GR" + rightReg + "\n");
-			code.append(spc     + " JPL " + jpfalse + "\n");
-			code.append(spc     + " LAD GR" + leftReg + ", -1" + "\n");
+			code.append(spc     + " CPA  GR" + leftReg + ", GR" + rightReg + "\n");
+			code.append(spc     + " JPL  " + jpfalse + "\n");
+			code.append(spc     + " LAD  GR" + leftReg + ", -1" + "\n");
 			code.append(spc     + " JUMP " + jpend + "\n");
-			code.append(jpfalse + " LAD GR" + leftReg + ", 0" + "\n");
+			code.append(jpfalse + " LAD  GR" + leftReg + ", 0" + "\n");
 			code.append(jpend   + " NOP" + "\n");
 		} else if(exp.value.equals("*")){
+			// TODO
+			/*
 			code.append(spc + " PUSH 0, GR1" + "\n");
 			code.append(spc + " PUSH 0, GR2" + "\n");
 			code.append(spc + " LAD  GR1, 0, GR" + leftReg  +"\n");
 			code.append(spc + " LAD  GR2, 0, GR" + rightReg +"\n");
 			code.append(spc + " CALL MUL" + "\n");
-			code.append(spc + " LAD  GR" + leftReg+ ", 0, GR2" +"\n");
+			code.append(spc + " LAD  GR0, 0, GR2" +"\n");
 			code.append(spc + " POP  GR2" + "\n");
 			code.append(spc + " POP  GR1" + "\n");
+			code.append(spc + " LAD  GR" + leftReg + ",0" + "\n");
+			code.append(spc + " ADDA GR" + leftReg + ",GR0" + "\n");
+			*/
+			code.append(spc + " PUSH 0, GR" + leftReg  +"\n");
+			code.append(spc + " PUSH 0, GR" + rightReg +"\n");
+			code.append(spc + " CALL MULT" + "\n");
+			code.append(spc + " POP  GR0" + "\n");
+			code.append(spc + " POP  GR" + leftReg + "\n");
+
 		} else if(exp.value.equals("/") || exp.value.equals("div")){
 			// TODO
 			code.append(spc + " PUSH 0, GR1" + "\n");

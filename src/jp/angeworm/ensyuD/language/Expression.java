@@ -1,5 +1,6 @@
 package jp.angeworm.ensyuD.language;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -22,5 +23,22 @@ public class Expression extends Value{
 	public Expression(String value, List<Value> exp, Type type) {
 		super(value, type);
 		this.operands = exp;
+	}
+	
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("(");
+		sb.append(this.value);
+		sb.append(" ");
+		Iterator<Value> iter = operands.iterator();
+		
+		if(iter.hasNext())
+			sb.append(iter.next());
+		while (iter.hasNext()) {
+			sb.append(" ");
+			sb.append(iter.next());
+		}
+		sb.append(")");
+		return sb.toString();
 	}
 }

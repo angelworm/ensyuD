@@ -378,9 +378,9 @@ class ParserImpl {
 				TokenType.SPLUS, TokenType.SMINUS, TokenType.SOR};
 
 		Value ret = term();
-		if(testToken(op)) {
+		while(testToken(op)) {
 			Token t = getTokenWhen(op);
-			Value rexp = simple_expression_r();
+			Value rexp = term();
 			
 			List<Value> operands = new LinkedList<Value>();
 			operands.add(ret);
@@ -424,9 +424,9 @@ class ParserImpl {
 				TokenType.SSTAR, TokenType.SDIVD, TokenType.SMOD, TokenType.SAND};
 		
 		Value ret = factor();
-		if(testToken(op)) {
+		while(testToken(op)) {
 			Token t = getTokenWhen(op);
-			Value rexp = term();
+			Value rexp = factor();
 			
 			List<Value> operands = new LinkedList<Value>();
 			operands.add(ret);
