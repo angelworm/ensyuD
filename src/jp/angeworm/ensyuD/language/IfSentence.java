@@ -16,4 +16,8 @@ public class IfSentence implements Sentence {
 		this.consequence = consequence;
 		this.alternative = null;
 	}
+	@Override
+	public String toString() {
+		return "if " + condition + " then " + consequence + " else " + alternative;
+	}
 }

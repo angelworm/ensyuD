@@ -16,4 +16,8 @@ public class BlockSentence implements Sentence {
 		sentences = new LinkedList<Sentence>(ss);
 	}
 
+	@Override
+	public String toString() {
+		return "begin " + sentences + " end" ;
+	}
 }

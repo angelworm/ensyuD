@@ -4,19 +4,19 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class FunctionType extends Type {
-	public List<String> args;
+	public List<Type> args;
 	
-	public FunctionType(List<String> args_) {
+	public FunctionType(List<Type> args2) {
 		super("VOID");
-		args = new LinkedList<String>(args_);
+		args = new LinkedList<Type>(args2);
 	}
 	public FunctionType(String ret) {
 		super(ret);
-		args = new LinkedList<String>();
+		args = new LinkedList<Type>();
 	}
-	public FunctionType(String ret, List<String> args_) {
+	public FunctionType(String ret, List<Type> args_) {
 		super(ret);
-		args = new LinkedList<String>(args_);
+		args = new LinkedList<Type>(args_);
 	}
 
 }

@@ -221,8 +221,8 @@ class ParserImpl {
 	
 	private Procedure procedure_head() {
 		Procedure proc;
-		Token t = getTokenWhen(TokenType.SIDENTIFIER);
 		expectToken(TokenType.SPROCEDURE);
+		Token t = getTokenWhen(TokenType.SIDENTIFIER);
 		List<Variable> args = formal_arguments();
 		expectToken(TokenType.SSEMICOLON);
 		
@@ -352,7 +352,9 @@ class ParserImpl {
 		List<Value> ret = new LinkedList<Value>();
 		ret.add(expression());
 		while(whenToken(TokenType.SCOMMA)) {
-			ret.add(expression());
+			Value v = expression();
+			assert v != null;
+			ret.add(v);
 		}
 		return ret;
 	}
@@ -377,11 +379,17 @@ class ParserImpl {
 		return ret;
 	}
 	
-	private Value simple_expression_r() {
+	private Value simple_expression_r(Token firstOpr) {
 		TokenType[] op = new TokenType[]{
 				TokenType.SPLUS, TokenType.SMINUS, TokenType.SOR};
 
 		Value ret = term();
+		
+		if (firstOpr != null) {
+			List<Value> operands = new ArrayList<Value>(1);
+			operands.add(ret);
+			ret = new Expression(firstOpr.getValue(), operands, new Type("integer"));
+		}
 		while(testToken(op)) {
 			Token t = getTokenWhen(op);
 			Value rexp = term();
@@ -404,21 +412,12 @@ class ParserImpl {
 		if(testToken(new TokenType[]{TokenType.SPLUS, TokenType.SMINUS})) {
 			Token t = getTokenWhen(new TokenType[]{TokenType.SPLUS, TokenType.SMINUS});
 			
-			ret = simple_expression_r();
-			
-			if(ret instanceof Expression) {
-				Value v = ((Expression) ret).operands.get(0);
-				List<Value> operands = new LinkedList<Value>();
-				operands.add(v);
-				((Expression) ret).operands.set(0, new Expression(t.getValue(), operands, new Type("integer")));
-			} else{
-				List<Value> operands = new LinkedList<Value>();
-				operands.add(ret);
-				ret = new Expression(t.getValue(), operands, new Type("integer"));
-			}
+			ret = simple_expression_r(t);
 		} else {
-			ret = simple_expression_r();
+			ret = simple_expression_r(null);
 		}
+		
+		assert ret != null;
 		
 		return ret;
 	}

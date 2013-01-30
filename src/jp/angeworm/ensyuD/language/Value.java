@@ -17,6 +17,6 @@ public class Value {
 	}
 	
 	public String toString() {
-		return value;
+		return value + ":" + type;
 	}
 }

@@ -9,4 +9,9 @@ public class WhileSentence implements Sentence {
 		this.condition = condition;
 		this.block = block;
 	}
+
+	@Override
+	public String toString() {
+		return "while " + condition + " do " + block;
+	}
 }

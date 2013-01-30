@@ -9,4 +9,9 @@ public class AssignSentence implements Sentence {
 		this.lvalue = lvalue;
 		this.rvalue = rvalue;
 	}
+
+	@Override
+	public String toString() {
+		return lvalue + " := " + rvalue;
+	}
 }

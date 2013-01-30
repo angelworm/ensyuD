@@ -10,4 +10,9 @@ public class ArrayType extends Type {
 		this.max = max;
 	}
 
+	@Override
+	public String toString() {
+		return "ArrayType " + super.type + "[min=" + min + ", max=" + max + "]";
+	}
+
 }

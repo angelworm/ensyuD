@@ -15,4 +15,9 @@ public class VariableAssign extends Value{
 		super(name2, type2);
 		index = null;
 	}
+	@Override
+	public String toString() {
+		return super.toString() + (index == null ? "" : "[" + index + "]");
+	}
+	
 }

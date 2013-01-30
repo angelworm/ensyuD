@@ -15,4 +15,8 @@ public class ApplySentence implements Sentence {
 		callee = callee_;
 		value = new ArrayList<Value>();
 	}
+	@Override
+	public String toString() {
+		return callee + "" + value;
+	}
 }
