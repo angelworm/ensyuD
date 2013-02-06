@@ -67,7 +67,7 @@ public class RegisterStack {
 	}
 	
 	public int free() {
-		if(!stack.isEmpty()) {
+		if(needStackPop()) {
 			int index = stack.pop();
 			
 			if(lastappend.contains(index)) {
@@ -85,7 +85,7 @@ public class RegisterStack {
 		}
 	}
 	public int free(int i) {
-		if(!stack.isEmpty() && stack.peek() == i ) {
+		if(needStackPop(i)) {
 			int index = stack.pop();
 			
 			if(lastappend.contains(index)) {
@@ -98,6 +98,14 @@ public class RegisterStack {
 			lastappend.remove(i);
 			register.set(i, false);
 			
+			return i;
+		}
+	}
+	
+	public int use(int i) {
+		if(register.get(i)) {
+			return i;
+		} else {
 			return i;
 		}
 	}

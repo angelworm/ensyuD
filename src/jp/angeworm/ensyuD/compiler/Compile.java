@@ -101,6 +101,19 @@ class CompileImpl {
 
 		return index;
 	}
+	
+	private int useRegister(StringBuilder code, int i) {
+		boolean needPop = rs.needStackPop(i - 1);
+		int index = rs.use(i - 1) + 1;
+
+		traceRegister(code);
+
+		if (needPop) {
+			code.append(spc + " POP  GR" + index + "\n");
+		}
+
+		return index;
+	}
 
 	private int getSize(Variable arg) {
 		if (arg.type instanceof ArrayType) {
